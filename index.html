@@ -58,6 +58,12 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 105, 180, 0.2);
             box-shadow: 0 8px 32px 0 rgba(248, 71, 171, 0.15);
+            animation: border-glow 5s infinite linear; /* Design Improvement: Added glowing border */
+        }
+        @keyframes border-glow {
+            0% { border-color: rgba(248, 113, 181, 0.3); box-shadow: 0 0 20px rgba(248, 71, 171, 0.1); }
+            50% { border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 0 30px rgba(168, 85, 247, 0.25); }
+            100% { border-color: rgba(248, 113, 181, 0.3); box-shadow: 0 0 20px rgba(248, 71, 171, 0.1); }
         }
         .btn-primary {
             background: linear-gradient(45deg, #f871b5, #a855f7);
@@ -68,18 +74,9 @@
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 0 35px rgba(248, 113, 181, 0.7);
         }
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
         .heart-btn {
-            width: 160px;
-            height: 160px;
+            width: 180px;
+            height: 180px;
             background: linear-gradient(135deg, #f871b5, #a855f7);
             display: flex;
             align-items: center;
@@ -99,13 +96,6 @@
             50% { transform: scale(1.05); box-shadow: 0 0 45px #f871b5; }
             100% { transform: scale(1); box-shadow: 0 0 30px #f871b5; }
         }
-        .fade-in {
-            animation: fadeInAnimation 1s ease-in forwards;
-        }
-        @keyframes fadeInAnimation {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 <body>
@@ -117,22 +107,47 @@
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bobo-call-app-final';
+        // CRITICAL FIX: Replace these placeholder values with your own Firebase project configuration!
+        // You can find this in your Firebase project settings -> SDK setup & configuration.
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        const appId = 'bobo-call-app-final'; // This can be a static name for your app's data path
 
         // --- App Initialization ---
         let db, auth;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch (e) {
-            console.error("Firebase initialization failed:", e);
-            document.getElementById('app').innerHTML = `<div class="text-center text-red-400">Server connection failed. The app cannot run.</div>`;
+        const appContainer = document.getElementById('app');
+        const starrySky = document.getElementById('starry-sky');
+
+        // Check if the config is still the placeholder
+        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+            appContainer.innerHTML = `
+                <div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
+                    <h1 class="text-3xl font-bold text-yellow-300 mb-4">Configuration Needed</h1>
+                    <p class="text-gray-300">Please replace the placeholder Firebase configuration in the HTML file with your own project's credentials before deploying.</p>
+                </div>
+            `;
+        } else {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                main(); // Start the main application logic
+            } catch (e) {
+                console.error("Firebase initialization failed:", e);
+                appContainer.innerHTML = `<div class="text-center text-red-400">Server connection failed. The app cannot run.</div>`;
+            }
         }
+        
 
         // --- App State ---
         let userId = null;
@@ -140,39 +155,32 @@
         let callListener = null;
         let isAlarmPlaying = false;
 
-        const appContainer = document.getElementById('app');
-        const starrySky = document.getElementById('starry-sky');
-
         // --- Core Functions ---
         
         async function main() {
             if (!db || !auth) return;
             
-            const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (token) {
-                await signInWithCustomToken(auth, token).catch(error => console.error("Custom token sign-in failed:", error));
-            } else {
-                await signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
-            }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const senderTargetId = urlParams.get('id');
-                    if (senderTargetId) {
-                        callId = senderTargetId;
-                        setupSenderUI();
-                    } else {
-                        callId = userId;
-                        setupReceiverUI();
-                        listenForCall();
-                    }
-                    createStarrySky();
+            try {
+                const userCredential = await signInAnonymously(auth);
+                userId = userCredential.user.uid;
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const senderTargetId = urlParams.get('id');
+                
+                if (senderTargetId) {
+                    callId = senderTargetId;
+                    setupSenderUI();
                 } else {
-                    console.log("User is not signed in.");
+                    callId = userId;
+                    setupReceiverUI();
+                    listenForCall();
                 }
-            });
+                createStarrySky();
+
+            } catch(error) {
+                console.error("Anonymous sign-in failed:", error);
+                appContainer.innerHTML = `<div class="text-center text-red-400">Authentication with server failed.</div>`;
+            }
         }
 
         function setupReceiverUI() {
@@ -190,17 +198,6 @@
                     <button id="copyLinkBtn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg mb-4">
                         Copy Bobo's Link
                     </button>
-
-                    <div id="share-instructions" class="hidden mt-4 p-4 bg-indigo-900/50 border border-indigo-500 rounded-lg text-left">
-                        <h3 class="font-bold text-lg text-yellow-300">How to Share This Link:</h3>
-                        <p class="text-sm mt-2">This app needs to be hosted online to work for others.</p>
-                        <ol class="list-decimal list-inside text-sm mt-2 space-y-1">
-                            <li>Save this page's code as an <code class="bg-black/50 p-1 rounded">index.html</code> file.</li>
-                            <li>Upload it to a free host like Netlify or GitHub Pages.</li>
-                            <li>Replace the <code class="bg-black/50 p-1 rounded">'your-website.com'</code> part of the copied link with your new site's address.</li>
-                        </ol>
-                        <p class="text-xs mt-3 text-gray-400"><strong>Example:</strong> If your site is <code class="bg-black/50 p-1 rounded">bobo-call.netlify.app</code>, the final link will be <code class="bg-black/50 p-1 rounded">https://bobo-call.netlify.app?id=${callId}</code></p>
-                    </div>
 
                     <div id="status" class="mt-4 text-lg text-green-400 transition-all duration-300">
                         <div class="flex items-center justify-center">
@@ -224,78 +221,18 @@
             appContainer.innerHTML = `
                 <div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
                     <h1 class="text-6xl font-bold text-pink-300 mb-4 dancing-script" style="text-shadow: 0 0 15px #f871b5;">For my Bobo</h1>
-                    <p class="text-gray-300 mb-6 text-lg">When you need me, just call.</p>
+                    <p class="text-gray-300 mb-8 text-lg">When you need me, just call.</p>
                     
                     <button id="sendCallBtn" class="heart-btn text-white font-bold text-2xl flex items-center justify-center flex-col leading-tight mx-auto mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" viewBox="0 0 20 20" fill="currentColor">
                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                         </svg>
                     </button>
                     <div id="senderStatus" class="text-lg text-gray-400 h-6 transition-all duration-300"></div>
-
-                    <div class="mt-8 border-t border-pink-500/20 pt-6">
-                        <div id="geminiMessageContainer" class="hidden min-h-[6rem] p-4 bg-black/20 rounded-lg text-center flex items-center justify-center">
-                            <p class="text-gray-300 italic"></p>
-                        </div>
-                        <button id="getGeminiMessageBtn" class="w-full mt-4 btn-secondary text-white font-bold py-3 px-4 rounded-lg text-md">
-                            ✨ Ask the Stars for a Message
-                        </button>
-                    </div>
                 </div>
             `;
             document.getElementById('sendCallBtn').addEventListener('click', sendCall);
-            document.getElementById('getGeminiMessageBtn').addEventListener('click', getRomanticMessage);
         }
-
-        // --- Gemini API Function ---
-        async function getRomanticMessage() {
-            const button = document.getElementById('getGeminiMessageBtn');
-            const messageContainer = document.getElementById('geminiMessageContainer');
-            const messageP = messageContainer.querySelector('p');
-
-            button.disabled = true;
-            button.innerHTML = '<span>Asking the cosmos...</span>';
-            messageP.innerHTML = '';
-            messageContainer.classList.remove('hidden');
-
-            const prompt = "Write a very short, poetic, and romantic message for someone special, as if it were whispered by the stars. Keep it under 20 words.";
-            
-            const payload = {
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-            };
-            const apiKey = ""; // API key will be provided by the environment
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API call failed with status: ${response.status}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    messageP.textContent = `"${text}"`;
-                    messageContainer.classList.add('fade-in');
-                } else {
-                    throw new Error("Unexpected API response structure.");
-                }
-
-            } catch (error) {
-                console.error("Gemini API error:", error);
-                messageP.textContent = "The stars are quiet right now. Please try again later.";
-            } finally {
-                button.disabled = false;
-                button.innerHTML = '✨ Ask the Stars for a Message';
-            }
-        }
-
 
         function listenForCall() {
             if (callListener) callListener();
@@ -392,9 +329,8 @@
 
         // --- Utility Functions ---
         function copyShareLink() {
-            const url = `https://your-website.com?id=${callId}`;
+            const url = `${window.location.origin}${window.location.pathname}?id=${callId}`;
             const btn = document.getElementById('copyLinkBtn');
-            const instructions = document.getElementById('share-instructions');
             
             const textArea = document.createElement("textarea");
             textArea.value = url;
@@ -407,18 +343,16 @@
 
             try {
                 document.execCommand('copy');
-                btn.innerHTML = 'Template Link Copied!';
+                btn.innerHTML = 'Link Copied!';
             } catch (err) {
                 btn.innerHTML = 'Copy Failed';
             }
 
             document.body.removeChild(textArea);
             
-            instructions.classList.remove('hidden');
-            
             setTimeout(() => {
                 btn.innerHTML = "Copy Bobo's Link";
-            }, 3000);
+            }, 2000);
         }
 
         function createStarrySky() {
@@ -444,9 +378,6 @@
                 starrySky.appendChild(shootingStar);
             }
         }
-
-        // --- Start the App ---
-        main();
     </script>
 </body>
 </html>
