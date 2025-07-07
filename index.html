@@ -11,8 +11,8 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #fce7f3; /* Light pink background */
-            color: #4a044e; /* Dark purple text */
+            background-color: #2c1f3a; /* Soothing dark purple background */
+            color: #f3e8ff; /* Light lavender text */
             overflow-y: auto;
         }
         .dancing-script {
@@ -35,11 +35,12 @@
         }
         .floating-element.heart {
             font-size: 2.5rem;
-            color: rgba(236, 72, 153, 0.3);
+            color: rgba(233, 179, 255, 0.3);
+            text-shadow: 0 0 10px rgba(233, 179, 255, 0.5);
         }
         .floating-element.phrase {
             font-size: 1.5rem;
-            color: rgba(192, 38, 211, 0.4);
+            color: rgba(216, 180, 254, 0.4);
             font-family: 'Dancing Script', cursive;
         }
         @keyframes float-up {
@@ -51,50 +52,50 @@
         .glass-card {
             position: relative;
             z-index: 1;
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(55, 31, 71, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px 0 rgba(192, 38, 211, 0.1);
+            border: 1px solid rgba(233, 179, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
         }
         .btn-primary {
-            background: linear-gradient(45deg, #ec4899, #d946ef);
+            background: linear-gradient(45deg, #a855f7, #d946ef);
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(219, 39, 119, 0.3);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
             color: white;
             border: none;
         }
         .btn-primary:hover {
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(219, 39, 119, 0.4);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
         }
         .btn-secondary {
-            background-color: rgba(255, 255, 255, 0.5);
-            color: #be185d;
-            border: 1px solid #f9a8d4;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #e9b3ff;
+            border: 1px solid #a855f7;
         }
         .heart-btn {
             width: 180px;
             height: 180px;
-            background: linear-gradient(135deg, #f9a8d4, #f472b6);
+            background: linear-gradient(135deg, #d8b4fe, #a855f7);
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 30px #f9a8d4;
+            box-shadow: 0 0 30px #a855f7;
             animation: heart-pulse 2s infinite;
         }
         .heart-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 50px #f472b6;
+            box-shadow: 0 0 50px #d8b4fe;
         }
         @keyframes heart-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 30px #f9a8d4; }
-            50% { transform: scale(1.05); box-shadow: 0 0 45px #f472b6; }
-            100% { transform: scale(1); box-shadow: 0 0 30px #f9a8d4; }
+            0% { transform: scale(1); box-shadow: 0 0 30px #a855f7; }
+            50% { transform: scale(1.05); box-shadow: 0 0 45px #d8b4fe; }
+            100% { transform: scale(1); box-shadow: 0 0 30px #a855f7; }
         }
     </style>
 </head>
@@ -106,7 +107,7 @@
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
@@ -125,7 +126,7 @@
         // --- App Initialization ---
         let db, auth;
         const appContainer = document.getElementById('app');
-        const dreamyBg = document.getElementById('dreamy-bg');
+        const bgContainer = document.getElementById('dreamy-bg');
 
         if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
             appContainer.innerHTML = `<div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full"><h1 class="text-3xl font-bold text-pink-600 mb-4">Configuration Needed</h1><p class="text-pink-800">Please add your Firebase project configuration to the HTML file.</p></div>`;
@@ -171,24 +172,24 @@
         function setupReceiverUI() {
             appContainer.innerHTML = `
                  <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-                    <h1 class="text-4xl font-bold text-pink-600 mb-2 dancing-script">Meli's Call</h1>
-                    <p class="text-pink-800 mb-6">Your Personal Receiver</p>
+                    <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script">Meli's Call</h1>
+                    <p class="text-purple-200 mb-6">Your Personal Receiver</p>
                     <button id="copyLinkBtn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg text-lg mb-4">
                         Copy Meli's Link
                     </button>
-                    <div id="status" class="mt-4 text-lg text-pink-700 transition-all duration-300">
+                    <div id="status" class="mt-4 text-lg text-purple-300 transition-all duration-300">
                         <div class="flex items-center justify-center">
-                            <div class="w-3 h-3 bg-pink-500 rounded-full mr-2 animate-pulse"></div>
+                            <div class="w-3 h-3 bg-purple-400 rounded-full mr-2 animate-pulse"></div>
                             Waiting for a call...
                         </div>
                     </div>
-                    <div id="call-log-container" class="mt-8 border-t border-pink-200 pt-4 text-left">
+                    <div id="call-log-container" class="mt-8 border-t border-purple-400/20 pt-4 text-left">
                         <div class="flex justify-between items-center mb-2">
-                            <h2 class="text-xl font-bold text-pink-600">Call Log</h2>
+                            <h2 class="text-xl font-bold text-pink-300">Call Log</h2>
                             <button id="clear-log-btn" class="btn-secondary text-xs font-bold py-1 px-3 rounded-md">Clear Log</button>
                         </div>
                         <ul id="call-log-list" class="max-h-48 overflow-y-auto space-y-2 pr-2">
-                            <li class="text-gray-500 text-center">No calls received yet.</li>
+                            <li class="text-gray-400 text-center">No calls received yet.</li>
                         </ul>
                     </div>
                 </div>
@@ -201,14 +202,14 @@
         function setupSenderUI() {
             appContainer.innerHTML = `
                 <div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-                    <h1 class="text-6xl font-bold text-pink-600 mb-4 dancing-script" style="text-shadow: 0 0 15px #f9a8d4;">For my Meli</h1>
-                    <p class="text-pink-800 mb-8 text-lg">When you need me, just call.</p>
+                    <h1 class="text-6xl font-bold text-pink-300 mb-4 dancing-script" style="text-shadow: 0 0 15px #f9a8d4;">For my meli</h1>
+                    <p class="text-purple-200 mb-8 text-lg">When you need me, just call.</p>
                     <button id="sendCallBtn" class="heart-btn text-white font-bold text-2xl flex items-center justify-center flex-col leading-tight mx-auto mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" viewBox="0 0 20 20" fill="currentColor">
                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                         </svg>
                     </button>
-                    <div id="senderStatus" class="text-lg text-pink-700 h-6 transition-all duration-300"></div>
+                    <div id="senderStatus" class="text-lg text-purple-300 h-6 transition-all duration-300"></div>
                 </div>
             `;
             document.getElementById('sendCallBtn').addEventListener('click', sendCall);
@@ -232,7 +233,7 @@
             if (!logList) return;
             callHistory.sort((a, b) => b.triggeredAt.seconds - a.triggeredAt.seconds);
             if (callHistory.length === 0) {
-                logList.innerHTML = `<li class="text-gray-500 text-center">No calls received yet.</li>`;
+                logList.innerHTML = `<li class="text-gray-400 text-center">No calls received yet.</li>`;
                 return;
             }
             logList.innerHTML = '';
@@ -240,16 +241,31 @@
                 const date = new Date(call.triggeredAt.seconds * 1000);
                 const formattedTime = date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
                 const listItem = document.createElement('li');
-                listItem.className = 'bg-white/50 p-2 rounded-md text-sm text-pink-900';
+                listItem.className = 'bg-purple-900/30 p-2 rounded-md text-sm text-purple-200';
                 listItem.textContent = `Call received at: ${formattedTime}`;
                 logList.appendChild(listItem);
             });
         }
         
-        function clearLog() {
-            const logList = document.getElementById('call-log-list');
-            if(logList) {
-                logList.innerHTML = `<li class="text-gray-500 text-center">Log cleared.</li>`;
+        async function clearLog() {
+            const clearBtn = document.getElementById('clear-log-btn');
+            clearBtn.textContent = 'Clearing...';
+            clearBtn.disabled = true;
+
+            const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
+            try {
+                const querySnapshot = await getDocs(historyCollectionRef);
+                const deletePromises = [];
+                querySnapshot.forEach((doc) => {
+                    deletePromises.push(deleteDoc(doc.ref));
+                });
+                await Promise.all(deletePromises);
+                // The onSnapshot listener will automatically update the UI to be empty
+            } catch(error) {
+                console.error("Error clearing log:", error);
+            } finally {
+                clearBtn.textContent = 'Clear Log';
+                clearBtn.disabled = false;
             }
         }
 
@@ -262,12 +278,13 @@
             const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
             try {
                 await addDoc(historyCollectionRef, { triggeredAt: serverTimestamp() });
-                senderStatus.innerHTML = `<span class="text-green-600 font-semibold">Your call has been sent!</span>`;
+                senderStatus.innerHTML = `<span class="text-green-400 font-semibold">Your call has been sent!</span>`;
                 sendButton.style.transform = 'scale(0.8)';
                 sendButton.style.opacity = '0.7';
-            } catch (error) {
+            } catch (error)
+                {
                 console.error("Error sending call:", error);
-                senderStatus.innerHTML = `<span class="text-red-600">Error! Please try again.</span>`;
+                senderStatus.innerHTML = `<span class="text-red-400">Error! Please try again.</span>`;
                 sendButton.disabled = false;
                 sendButton.innerHTML = '<span>Retry</span>';
             }
@@ -299,9 +316,11 @@
         function createDreamyBackground() {
             const phrases = ["Je t'aime", "Ma princesse", "Meli", "Tu es belle", "Mon cœur", "Ma vie"];
             const elements = [];
-            for(let i = 0; i < 15; i++) {
+            for(let i = 0; i < 20; i++) {
                 elements.push({ type: 'heart', content: '❤' });
-                elements.push({ type: 'phrase', content: phrases[i % phrases.length] });
+                if (i < phrases.length * 2) { // Add phrases
+                    elements.push({ type: 'phrase', content: phrases[i % phrases.length] });
+                }
             }
 
             elements.forEach(el => {
@@ -312,7 +331,7 @@
                 item.style.left = `${Math.random() * 100}vw`;
                 item.style.animationDuration = `${15 + Math.random() * 15}s`;
                 item.style.animationDelay = `${Math.random() * 15}s`;
-                dreamyBg.appendChild(item);
+                bgContainer.appendChild(item);
             });
         }
     </script>
