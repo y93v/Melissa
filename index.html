@@ -74,6 +74,15 @@
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 0 35px rgba(248, 113, 181, 0.7);
         }
+        .btn-danger {
+            background: linear-gradient(45deg, #e11d48, #be123c);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(225, 29, 72, 0.4);
+        }
+        .btn-danger:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 35px rgba(225, 29, 72, 0.7);
+        }
         .heart-btn {
             width: 180px;
             height: 180px;
@@ -146,6 +155,8 @@
         let callId = null;
         let callListener = null;
         let isAlarmPlaying = false;
+        let alarmSynth = null;
+        let alarmPattern = null;
 
         // --- Core Functions ---
         async function main() {
@@ -189,16 +200,13 @@
             const setupDiv = document.getElementById('receiver-setup');
             const mainDiv = document.getElementById('receiver-main');
             
-            // Hide setup and show main UI
             setupDiv.classList.add('hidden');
             
             mainDiv.innerHTML = `
                  <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
                     <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script">Bobo's Call</h1>
                     <p class="text-gray-300 mb-6">Your Personal Receiver</p>
-                    <div id="notification-status" class="mb-4 p-3 bg-black/20 rounded-lg">
-                        <!-- Status will be updated here -->
-                    </div>
+                    <div id="notification-status" class="mb-4 p-3 bg-black/20 rounded-lg"></div>
                     <button id="copyLinkBtn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg mb-4">
                         Copy Bobo's Link
                     </button>
@@ -210,7 +218,9 @@
                     </div>
                     <div id="stop-alarm-container" class="hidden mt-6">
                          <p class="text-yellow-300 mb-4 text-xl animate-pulse font-semibold">INCOMING CALL!</p>
-                         <p class="text-gray-300">To stop the alarm, please <strong>close this tab</strong> or <strong>refresh the page</strong>.</p>
+                         <button id="stop-alarm-btn" class="w-full btn-danger text-white font-bold py-4 px-4 rounded-lg text-xl">
+                            Stop Alarm
+                         </button>
                     </div>
                     <div id="call-log-container" class="mt-8 border-t border-pink-500/20 pt-4 text-left">
                         <h2 class="text-xl font-bold text-pink-200 mb-2 text-center">Call Log</h2>
@@ -222,13 +232,12 @@
             `;
             mainDiv.classList.remove('hidden');
             document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
+            document.getElementById('stop-alarm-btn').addEventListener('click', stopAlarm);
 
-            // Unlock audio and request notification permission
             await Tone.start();
             await requestNotificationPermission();
             checkNotificationStatus();
 
-            // Start listening for calls
             listenForCall();
         }
 
@@ -252,12 +261,9 @@
             if (callListener) callListener();
             const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
             const q = query(historyCollectionRef);
-
             callListener = onSnapshot(q, (querySnapshot) => {
                 const callHistory = [];
-                querySnapshot.forEach(doc => {
-                    callHistory.push(doc.data());
-                });
+                querySnapshot.forEach(doc => callHistory.push(doc.data()));
                 updateCallLogUI(callHistory);
                 querySnapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
@@ -270,9 +276,7 @@
             }, (error) => {
                 console.error("Snapshot listener error:", error);
                 const statusDiv = document.getElementById('status');
-                if (statusDiv) {
-                    statusDiv.innerHTML = `<span class="text-red-500">Permission Error. Cannot listen for calls.</span>`;
-                }
+                if (statusDiv) statusDiv.innerHTML = `<span class="text-red-500">Permission Error. Cannot listen for calls.</span>`;
             });
         }
 
@@ -287,10 +291,7 @@
             logList.innerHTML = '';
             callHistory.forEach(call => {
                 const date = new Date(call.triggeredAt.seconds * 1000);
-                const formattedTime = date.toLocaleString('en-US', {
-                    year: 'numeric', month: 'short', day: 'numeric', 
-                    hour: '2-digit', minute: '2-digit', hour12: true 
-                });
+                const formattedTime = date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
                 const listItem = document.createElement('li');
                 listItem.className = 'bg-black/20 p-2 rounded-md text-sm text-gray-200';
                 listItem.textContent = `Call received at: ${formattedTime}`;
@@ -322,32 +323,65 @@
             showNotification();
             if (isAlarmPlaying) return;
             isAlarmPlaying = true;
+            
             await Tone.start();
             document.getElementById('status').innerHTML = `<div class="text-red-400 text-2xl font-bold animate-ping">!!! INCOMING CALL !!!</div>`;
             document.getElementById('stop-alarm-container').classList.remove('hidden');
-            const synth = new Tone.DuoSynth({
-                vibratoAmount: 0.5, vibratoRate: 5, harmonicity: 1.5,
-                voice0: { volume: -10, portamento: 0, oscillator: { type: "square" }, filterEnvelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 } },
-                voice1: { volume: -10, portamento: 0, oscillator: { type: "sawtooth" }, filterEnvelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 } }
+
+            // Create an iPhone Marimba-like sound
+            alarmSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
             }).toDestination();
-            const pattern = new Tone.Sequence((time, note) => {
-                synth.triggerAttackRelease(note, "8n", time);
-            }, ["C5", "G5", "Eb5", "G5"], "4n");
-            pattern.loop = true;
-            Tone.Transport.bpm.value = 150;
+            
+            const marimbaPattern = [
+                'G5', 'F#5', 'D#5', 'B4', 'E5', 'G#4', 'C#5', 'A4'
+            ];
+
+            alarmPattern = new Tone.Sequence((time, note) => {
+                alarmSynth.triggerAttackRelease(note, '8n', time);
+            }, marimbaPattern, '8n');
+
+            Tone.Transport.bpm.value = 180;
+            alarmPattern.loop = true;
+            alarmPattern.start(0);
             Tone.Transport.start();
-            pattern.start(0);
+        }
+        
+        function stopAlarm() {
+            if (alarmPattern) {
+                alarmPattern.stop(0);
+                alarmPattern.dispose();
+            }
+            if (alarmSynth) {
+                alarmSynth.releaseAll();
+                alarmSynth.dispose();
+            }
+            Tone.Transport.stop();
+            Tone.Transport.cancel();
+            
+            isAlarmPlaying = false;
+            
+            document.getElementById('stop-alarm-container').classList.add('hidden');
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `
+                <div class="flex items-center justify-center">
+                    <div class="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                    Waiting for a call...
+                </div>
+            `;
         }
 
         function checkNotificationStatus() {
             if (!("Notification" in window)) return;
             const statusDiv = document.getElementById('notification-status');
+            if(!statusDiv) return;
             if (Notification.permission === "granted") {
                 statusDiv.innerHTML = `<p class="text-green-400 text-sm">✓ Notifications Enabled</p>`;
             } else if (Notification.permission === "denied") {
                 statusDiv.innerHTML = `<p class="text-yellow-500 text-sm">Notifications blocked in browser settings.</p>`;
             } else {
-                 statusDiv.innerHTML = `<p class="text-gray-400 text-sm">Click to enable notifications.</p>`;
+                 statusDiv.innerHTML = `<p class="text-gray-400 text-sm">Click 'Ready to Receive' to enable notifications.</p>`;
             }
         }
         async function requestNotificationPermission() {
