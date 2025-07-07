@@ -120,6 +120,11 @@
         <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
         <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.mp3" type="audio/mpeg">
     </audio>
+    <!-- New audio element for the initial ring -->
+    <audio id="ring-sound" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/communication/call_ring_request.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/communication/call_ring_request.mp3" type="audio/mpeg">
+    </audio>
 
     <script type="module">
         // Firebase Imports
@@ -145,6 +150,7 @@
         const appContainer = document.getElementById('app');
         const starrySky = document.getElementById('starry-sky');
         const alarmSound = document.getElementById('alarm-sound');
+        const ringSound = document.getElementById('ring-sound');
 
         if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
             appContainer.innerHTML = `<div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full"><h1 class="text-3xl font-bold text-yellow-300 mb-4">Configuration Needed</h1><p class="text-gray-300">Please add your Firebase project configuration to the HTML file.</p></div>`;
@@ -165,6 +171,8 @@
         let callId = null;
         let callListener = null;
         let isAlarmPlaying = false;
+        let titleInterval = null;
+        const originalTitle = document.title;
 
         // --- Core Functions ---
         async function main() {
@@ -198,7 +206,6 @@
                     </button>
                 </div>
                 <div id="receiver-main" class="hidden"></div>
-                <!-- New Incoming Call Modal -->
                 <div id="incoming-call-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
                     <div class="glass-card p-8 rounded-2xl text-center">
                         <h1 class="text-5xl font-bold text-yellow-300 mb-4 dancing-script animate-pulse">Incoming Call!</h1>
@@ -335,6 +342,17 @@
         function showIncomingCall() {
             showNotification();
             if (isAlarmPlaying) return;
+
+            // Start blinking title
+            let isToggled = false;
+            titleInterval = setInterval(() => {
+                document.title = isToggled ? originalTitle : "❗️ INCOMING CALL ❗️";
+                isToggled = !isToggled;
+            }, 1000);
+
+            // Play initial ring sound
+            ringSound.play().catch(e => console.log("Could not play ring sound:", e));
+
             const modal = document.getElementById('incoming-call-modal');
             modal.classList.remove('hidden');
         }
@@ -342,6 +360,10 @@
         function answerCall() {
             const modal = document.getElementById('incoming-call-modal');
             modal.classList.add('hidden');
+
+            // Stop blinking title and restore it
+            clearInterval(titleInterval);
+            document.title = originalTitle;
             
             if (isAlarmPlaying) return;
             isAlarmPlaying = true;
@@ -356,6 +378,10 @@
             alarmSound.pause();
             alarmSound.currentTime = 0;
             isAlarmPlaying = false;
+
+            // Ensure title is restored if alarm is stopped without answering
+            clearInterval(titleInterval);
+            document.title = originalTitle;
             
             document.getElementById('stop-alarm-container').classList.add('hidden');
             const statusDiv = document.getElementById('status');
