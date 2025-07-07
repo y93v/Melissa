@@ -161,7 +161,6 @@
                 } else {
                     callId = userId;
                     setupReceiverUI();
-                    listenForCall();
                 }
                 createStarrySky();
             } catch(error) {
@@ -172,13 +171,33 @@
 
         function setupReceiverUI() {
             appContainer.innerHTML = `
-                <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
+                <div id="receiver-setup" class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
+                    <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script">Bobo's Call</h1>
+                    <p class="text-gray-300 mb-8">Click the button when you're ready to receive calls.</p>
+                    <button id="start-listening-btn" class="w-full btn-primary text-white font-bold py-4 px-4 rounded-lg text-xl">
+                        Ready to Receive Calls
+                    </button>
+                </div>
+                <div id="receiver-main" class="hidden">
+                    <!-- This will be populated after user interaction -->
+                </div>
+            `;
+            document.getElementById('start-listening-btn').addEventListener('click', initializeReceiver);
+        }
+        
+        async function initializeReceiver() {
+            const setupDiv = document.getElementById('receiver-setup');
+            const mainDiv = document.getElementById('receiver-main');
+            
+            // Hide setup and show main UI
+            setupDiv.classList.add('hidden');
+            
+            mainDiv.innerHTML = `
+                 <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
                     <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script">Bobo's Call</h1>
                     <p class="text-gray-300 mb-6">Your Personal Receiver</p>
-                    <div id="notification-setup" class="mb-4 p-3 bg-black/20 rounded-lg">
-                        <button id="enableNotificationsBtn" class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg text-md">
-                            Enable Notifications
-                        </button>
+                    <div id="notification-status" class="mb-4 p-3 bg-black/20 rounded-lg">
+                        <!-- Status will be updated here -->
                     </div>
                     <button id="copyLinkBtn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg mb-4">
                         Copy Bobo's Link
@@ -193,7 +212,6 @@
                          <p class="text-yellow-300 mb-4 text-xl animate-pulse font-semibold">INCOMING CALL!</p>
                          <p class="text-gray-300">To stop the alarm, please <strong>close this tab</strong> or <strong>refresh the page</strong>.</p>
                     </div>
-                    <!-- New Feature: Call Log -->
                     <div id="call-log-container" class="mt-8 border-t border-pink-500/20 pt-4 text-left">
                         <h2 class="text-xl font-bold text-pink-200 mb-2 text-center">Call Log</h2>
                         <ul id="call-log-list" class="max-h-48 overflow-y-auto space-y-2 pr-2">
@@ -202,9 +220,16 @@
                     </div>
                 </div>
             `;
+            mainDiv.classList.remove('hidden');
             document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
-            document.getElementById('enableNotificationsBtn').addEventListener('click', requestNotificationPermission);
+
+            // Unlock audio and request notification permission
+            await Tone.start();
+            await requestNotificationPermission();
             checkNotificationStatus();
+
+            // Start listening for calls
+            listenForCall();
         }
 
         function setupSenderUI() {
@@ -225,7 +250,6 @@
 
         function listenForCall() {
             if (callListener) callListener();
-            // Listen to the history subcollection for new calls
             const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
             const q = query(historyCollectionRef);
 
@@ -234,15 +258,10 @@
                 querySnapshot.forEach(doc => {
                     callHistory.push(doc.data());
                 });
-
-                // Update the UI with the full history
                 updateCallLogUI(callHistory);
-
-                // Check for a new call to trigger the alarm
                 querySnapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
                         const newCallData = change.doc.data();
-                        // Check if the call is recent (within 30 seconds)
                         if (newCallData.triggeredAt && (serverTimestamp().seconds - newCallData.triggeredAt.seconds < 30)) {
                             triggerAlarm();
                         }
@@ -260,16 +279,12 @@
         function updateCallLogUI(callHistory) {
             const logList = document.getElementById('call-log-list');
             if (!logList) return;
-
-            // Sort history, newest first
             callHistory.sort((a, b) => b.triggeredAt.seconds - a.triggeredAt.seconds);
-
             if (callHistory.length === 0) {
                 logList.innerHTML = `<li class="text-gray-400 text-center">No calls received yet.</li>`;
                 return;
             }
-
-            logList.innerHTML = ''; // Clear the list
+            logList.innerHTML = '';
             callHistory.forEach(call => {
                 const date = new Date(call.triggeredAt.seconds * 1000);
                 const formattedTime = date.toLocaleString('en-US', {
@@ -286,12 +301,9 @@
         async function sendCall() {
             const sendButton = document.getElementById('sendCallBtn');
             const senderStatus = document.getElementById('senderStatus');
-            
             sendButton.disabled = true;
             sendButton.style.animation = 'none';
             sendButton.innerHTML = `<span class="text-xl">Sent!</span>`;
-
-            // Add a new document to the history subcollection
             const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
             try {
                 await addDoc(historyCollectionRef, { triggeredAt: serverTimestamp() });
@@ -311,20 +323,16 @@
             if (isAlarmPlaying) return;
             isAlarmPlaying = true;
             await Tone.start();
-            
             document.getElementById('status').innerHTML = `<div class="text-red-400 text-2xl font-bold animate-ping">!!! INCOMING CALL !!!</div>`;
             document.getElementById('stop-alarm-container').classList.remove('hidden');
-
             const synth = new Tone.DuoSynth({
                 vibratoAmount: 0.5, vibratoRate: 5, harmonicity: 1.5,
                 voice0: { volume: -10, portamento: 0, oscillator: { type: "square" }, filterEnvelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 } },
                 voice1: { volume: -10, portamento: 0, oscillator: { type: "sawtooth" }, filterEnvelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 } }
             }).toDestination();
-            
             const pattern = new Tone.Sequence((time, note) => {
                 synth.triggerAttackRelease(note, "8n", time);
             }, ["C5", "G5", "Eb5", "G5"], "4n");
-            
             pattern.loop = true;
             Tone.Transport.bpm.value = 150;
             Tone.Transport.start();
@@ -333,16 +341,19 @@
 
         function checkNotificationStatus() {
             if (!("Notification" in window)) return;
-            const btnContainer = document.getElementById('notification-setup');
+            const statusDiv = document.getElementById('notification-status');
             if (Notification.permission === "granted") {
-                btnContainer.innerHTML = `<p class="text-green-400 text-sm">✓ Notifications Enabled</p>`;
+                statusDiv.innerHTML = `<p class="text-green-400 text-sm">✓ Notifications Enabled</p>`;
             } else if (Notification.permission === "denied") {
-                btnContainer.innerHTML = `<p class="text-yellow-500 text-sm">Notifications blocked in browser settings.</p>`;
+                statusDiv.innerHTML = `<p class="text-yellow-500 text-sm">Notifications blocked in browser settings.</p>`;
+            } else {
+                 statusDiv.innerHTML = `<p class="text-gray-400 text-sm">Click to enable notifications.</p>`;
             }
         }
-        function requestNotificationPermission() {
+        async function requestNotificationPermission() {
             if (!("Notification" in window)) { alert("This browser does not support notifications."); return; }
-            Notification.requestPermission().then(checkNotificationStatus);
+            await Notification.requestPermission();
+            checkNotificationStatus();
         }
         function showNotification() {
             if (Notification.permission === "granted") {
