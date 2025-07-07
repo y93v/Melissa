@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bobo's Call</title>
+    <title>For Meli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,125 +11,102 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #020218;
-            color: #f0f0f0;
+            background-color: #fce7f3; /* Light pink background */
+            color: #4a044e; /* Dark purple text */
             overflow-y: auto;
         }
         .dancing-script {
             font-family: 'Dancing Script', cursive;
         }
-        #starry-sky {
+        #dreamy-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            overflow: hidden;
         }
-        .star {
+        .floating-element {
             position: absolute;
-            background-color: white;
-            border-radius: 50%;
-            animation: twinkle 2s infinite ease-in-out;
+            user-select: none;
+            animation: float-up 20s infinite linear;
+            opacity: 0;
         }
-        .shooting-star {
-            position: absolute;
-            height: 2px;
-            background: linear-gradient(-45deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
-            border-radius: 999px;
-            filter: drop-shadow(0 0 6px white);
-            animation: shooting-star-animation 15s linear infinite;
+        .floating-element.heart {
+            font-size: 2.5rem;
+            color: rgba(236, 72, 153, 0.3);
         }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
+        .floating-element.phrase {
+            font-size: 1.5rem;
+            color: rgba(192, 38, 211, 0.4);
+            font-family: 'Dancing Script', cursive;
         }
-        @keyframes shooting-star-animation {
-            0% { transform: translateX(0) translateY(0) rotate(45deg); opacity: 1; }
-            100% { transform: translateX(-150vw) translateY(150vh) rotate(45deg); opacity: 0; }
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0.7); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.3); opacity: 0; }
         }
         .glass-card {
             position: relative;
             z-index: 1;
-            background: rgba(12, 5, 32, 0.4);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 105, 180, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(248, 71, 171, 0.15);
-            animation: border-glow 5s infinite linear;
-        }
-        @keyframes border-glow {
-            0% { border-color: rgba(248, 113, 181, 0.3); box-shadow: 0 0 20px rgba(248, 71, 171, 0.1); }
-            50% { border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 0 30px rgba(168, 85, 247, 0.25); }
-            100% { border-color: rgba(248, 113, 181, 0.3); box-shadow: 0 0 20px rgba(248, 71, 171, 0.1); }
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(192, 38, 211, 0.1);
         }
         .btn-primary {
-            background: linear-gradient(45deg, #f871b5, #a855f7);
+            background: linear-gradient(45deg, #ec4899, #d946ef);
             transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(248, 113, 181, 0.4);
+            box-shadow: 0 4px 15px rgba(219, 39, 119, 0.3);
+            color: white;
+            border: none;
         }
         .btn-primary:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 0 35px rgba(248, 113, 181, 0.7);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(219, 39, 119, 0.4);
         }
-        .btn-success {
-            background: linear-gradient(45deg, #22c55e, #16a34a);
-        }
-        .btn-danger {
-            background: linear-gradient(45deg, #e11d48, #be123c);
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #be185d;
+            border: 1px solid #f9a8d4;
         }
         .heart-btn {
             width: 180px;
             height: 180px;
-            background: linear-gradient(135deg, #f871b5, #a855f7);
+            background: linear-gradient(135deg, #f9a8d4, #f472b6);
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 30px #f871b5;
+            box-shadow: 0 0 30px #f9a8d4;
             animation: heart-pulse 2s infinite;
         }
         .heart-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 50px #f871b5;
+            box-shadow: 0 0 50px #f472b6;
         }
         @keyframes heart-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 30px #f871b5; }
-            50% { transform: scale(1.05); box-shadow: 0 0 45px #f871b5; }
-            100% { transform: scale(1); box-shadow: 0 0 30px #f871b5; }
-        }
-        .pulse-animation {
-            animation: pulse-effect 1.5s infinite;
-        }
-        @keyframes pulse-effect {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+            0% { transform: scale(1); box-shadow: 0 0 30px #f9a8d4; }
+            50% { transform: scale(1.05); box-shadow: 0 0 45px #f472b6; }
+            100% { transform: scale(1); box-shadow: 0 0 30px #f9a8d4; }
         }
     </style>
 </head>
 <body>
 
-    <div id="starry-sky"></div>
+    <div id="dreamy-bg"></div>
     <div id="app" class="min-h-screen flex items-center justify-center p-4"></div>
-    
-    <audio id="alarm-sound" loop preload="auto">
-        <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.mp3" type="audio/mpeg">
-    </audio>
-    <!-- New audio element for the initial ring -->
-    <audio id="ring-sound" preload="auto">
-        <source src="https://actions.google.com/sounds/v1/communication/call_ring_request.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/communication/call_ring_request.mp3" type="audio/mpeg">
-    </audio>
 
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, collection, onSnapshot, addDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
@@ -143,17 +120,15 @@
             measurementId: "G-39BKTFQXQ6"
         };
         
-        const appId = 'bobo-call-app-final';
+        const appId = 'meli-call-app-final';
 
         // --- App Initialization ---
         let db, auth;
         const appContainer = document.getElementById('app');
-        const starrySky = document.getElementById('starry-sky');
-        const alarmSound = document.getElementById('alarm-sound');
-        const ringSound = document.getElementById('ring-sound');
+        const dreamyBg = document.getElementById('dreamy-bg');
 
         if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
-            appContainer.innerHTML = `<div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full"><h1 class="text-3xl font-bold text-yellow-300 mb-4">Configuration Needed</h1><p class="text-gray-300">Please add your Firebase project configuration to the HTML file.</p></div>`;
+            appContainer.innerHTML = `<div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full"><h1 class="text-3xl font-bold text-pink-600 mb-4">Configuration Needed</h1><p class="text-pink-800">Please add your Firebase project configuration to the HTML file.</p></div>`;
         } else {
             try {
                 const app = initializeApp(firebaseConfig);
@@ -162,7 +137,7 @@
                 main();
             } catch (e) {
                 console.error("Firebase initialization failed:", e);
-                appContainer.innerHTML = `<div class="text-center text-red-400">Server connection failed. The app cannot run.</div>`;
+                appContainer.innerHTML = `<div class="text-center text-red-500">Server connection failed. The app cannot run.</div>`;
             }
         }
         
@@ -170,9 +145,6 @@
         let userId = null;
         let callId = null;
         let callListener = null;
-        let isAlarmPlaying = false;
-        let titleInterval = null;
-        const originalTitle = document.title;
 
         // --- Core Functions ---
         async function main() {
@@ -189,91 +161,54 @@
                     callId = userId;
                     setupReceiverUI();
                 }
-                createStarrySky();
+                createDreamyBackground();
             } catch(error) {
                 console.error("Anonymous sign-in failed:", error);
-                appContainer.innerHTML = `<div class="text-center text-red-400">Authentication with server failed.</div>`;
+                appContainer.innerHTML = `<div class="text-center text-red-500">Authentication with server failed.</div>`;
             }
         }
 
         function setupReceiverUI() {
             appContainer.innerHTML = `
-                <div id="receiver-setup" class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-                    <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script">Bobo's Call</h1>
-                    <p class="text-gray-300 mb-8">Click the button when you're ready to receive calls.</p>
-                    <button id="start-listening-btn" class="w-full btn-primary text-white font-bold py-4 px-4 rounded-lg text-xl">
-                        Ready to Receive Calls
-                    </button>
-                </div>
-                <div id="receiver-main" class="hidden"></div>
-                <div id="incoming-call-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                    <div class="glass-card p-8 rounded-2xl text-center">
-                        <h1 class="text-5xl font-bold text-yellow-300 mb-4 dancing-script animate-pulse">Incoming Call!</h1>
-                        <p class="text-gray-200 text-xl mb-8">Bobo is calling for you.</p>
-                        <button id="answer-call-btn" class="w-full btn-success text-white font-bold py-4 px-4 rounded-lg text-2xl pulse-animation">
-                            Answer
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('start-listening-btn').addEventListener('click', initializeReceiver);
-        }
-        
-        async function initializeReceiver() {
-            const setupDiv = document.getElementById('receiver-setup');
-            const mainDiv = document.getElementById('receiver-main');
-            
-            setupDiv.classList.add('hidden');
-            
-            mainDiv.innerHTML = `
                  <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-                    <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script">Bobo's Call</h1>
-                    <p class="text-gray-300 mb-6">Your Personal Receiver</p>
-                    <div id="notification-status" class="mb-4 p-3 bg-black/20 rounded-lg"></div>
-                    <button id="copyLinkBtn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg mb-4">
-                        Copy Bobo's Link
+                    <h1 class="text-4xl font-bold text-pink-600 mb-2 dancing-script">Meli's Call</h1>
+                    <p class="text-pink-800 mb-6">Your Personal Receiver</p>
+                    <button id="copyLinkBtn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg text-lg mb-4">
+                        Copy Meli's Link
                     </button>
-                    <div id="status" class="mt-4 text-lg text-green-400 transition-all duration-300">
+                    <div id="status" class="mt-4 text-lg text-pink-700 transition-all duration-300">
                         <div class="flex items-center justify-center">
-                            <div class="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                            <div class="w-3 h-3 bg-pink-500 rounded-full mr-2 animate-pulse"></div>
                             Waiting for a call...
                         </div>
                     </div>
-                    <div id="stop-alarm-container" class="hidden mt-6">
-                         <p class="text-yellow-300 mb-4 text-xl animate-pulse font-semibold">ALARM ACTIVE!</p>
-                         <button id="stop-alarm-btn" class="w-full btn-danger text-white font-bold py-4 px-4 rounded-lg text-xl">
-                            Stop Alarm
-                         </button>
-                    </div>
-                    <div id="call-log-container" class="mt-8 border-t border-pink-500/20 pt-4 text-left">
-                        <h2 class="text-xl font-bold text-pink-200 mb-2 text-center">Call Log</h2>
+                    <div id="call-log-container" class="mt-8 border-t border-pink-200 pt-4 text-left">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-xl font-bold text-pink-600">Call Log</h2>
+                            <button id="clear-log-btn" class="btn-secondary text-xs font-bold py-1 px-3 rounded-md">Clear Log</button>
+                        </div>
                         <ul id="call-log-list" class="max-h-48 overflow-y-auto space-y-2 pr-2">
-                            <li class="text-gray-400 text-center">No calls received yet.</li>
+                            <li class="text-gray-500 text-center">No calls received yet.</li>
                         </ul>
                     </div>
                 </div>
             `;
-            mainDiv.classList.remove('hidden');
             document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
-            document.getElementById('stop-alarm-btn').addEventListener('click', stopAlarm);
-            document.getElementById('answer-call-btn').addEventListener('click', answerCall);
-
-            await requestNotificationPermission();
-            checkNotificationStatus();
+            document.getElementById('clear-log-btn').addEventListener('click', clearLog);
             listenForCall();
         }
 
         function setupSenderUI() {
             appContainer.innerHTML = `
                 <div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-                    <h1 class="text-6xl font-bold text-pink-300 mb-4 dancing-script" style="text-shadow: 0 0 15px #f871b5;">For my Bobo</h1>
-                    <p class="text-gray-300 mb-8 text-lg">When you need me, just call.</p>
+                    <h1 class="text-6xl font-bold text-pink-600 mb-4 dancing-script" style="text-shadow: 0 0 15px #f9a8d4;">For my Meli</h1>
+                    <p class="text-pink-800 mb-8 text-lg">When you need me, just call.</p>
                     <button id="sendCallBtn" class="heart-btn text-white font-bold text-2xl flex items-center justify-center flex-col leading-tight mx-auto mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" viewBox="0 0 20 20" fill="currentColor">
                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                         </svg>
                     </button>
-                    <div id="senderStatus" class="text-lg text-gray-400 h-6 transition-all duration-300"></div>
+                    <div id="senderStatus" class="text-lg text-pink-700 h-6 transition-all duration-300"></div>
                 </div>
             `;
             document.getElementById('sendCallBtn').addEventListener('click', sendCall);
@@ -287,14 +222,6 @@
                 const callHistory = [];
                 querySnapshot.forEach(doc => callHistory.push(doc.data()));
                 updateCallLogUI(callHistory);
-                querySnapshot.docChanges().forEach((change) => {
-                    if (change.type === "added") {
-                        const newCallData = change.doc.data();
-                        if (newCallData.triggeredAt && (serverTimestamp().seconds - newCallData.triggeredAt.seconds < 30)) {
-                            showIncomingCall();
-                        }
-                    }
-                });
             }, (error) => {
                 console.error("Snapshot listener error:", error);
             });
@@ -305,7 +232,7 @@
             if (!logList) return;
             callHistory.sort((a, b) => b.triggeredAt.seconds - a.triggeredAt.seconds);
             if (callHistory.length === 0) {
-                logList.innerHTML = `<li class="text-gray-400 text-center">No calls received yet.</li>`;
+                logList.innerHTML = `<li class="text-gray-500 text-center">No calls received yet.</li>`;
                 return;
             }
             logList.innerHTML = '';
@@ -313,10 +240,17 @@
                 const date = new Date(call.triggeredAt.seconds * 1000);
                 const formattedTime = date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
                 const listItem = document.createElement('li');
-                listItem.className = 'bg-black/20 p-2 rounded-md text-sm text-gray-200';
+                listItem.className = 'bg-white/50 p-2 rounded-md text-sm text-pink-900';
                 listItem.textContent = `Call received at: ${formattedTime}`;
                 logList.appendChild(listItem);
             });
+        }
+        
+        function clearLog() {
+            const logList = document.getElementById('call-log-list');
+            if(logList) {
+                logList.innerHTML = `<li class="text-gray-500 text-center">Log cleared.</li>`;
+            }
         }
 
         async function sendCall() {
@@ -328,95 +262,14 @@
             const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
             try {
                 await addDoc(historyCollectionRef, { triggeredAt: serverTimestamp() });
-                senderStatus.innerHTML = `<span class="text-green-400">Your call has been sent!</span>`;
+                senderStatus.innerHTML = `<span class="text-green-600 font-semibold">Your call has been sent!</span>`;
                 sendButton.style.transform = 'scale(0.8)';
                 sendButton.style.opacity = '0.7';
             } catch (error) {
                 console.error("Error sending call:", error);
-                senderStatus.innerHTML = `<span class="text-red-400">Error! Please try again.</span>`;
+                senderStatus.innerHTML = `<span class="text-red-600">Error! Please try again.</span>`;
                 sendButton.disabled = false;
                 sendButton.innerHTML = '<span>Retry</span>';
-            }
-        }
-
-        function showIncomingCall() {
-            showNotification();
-            if (isAlarmPlaying) return;
-
-            // Start blinking title
-            let isToggled = false;
-            titleInterval = setInterval(() => {
-                document.title = isToggled ? originalTitle : "❗️ INCOMING CALL ❗️";
-                isToggled = !isToggled;
-            }, 1000);
-
-            // Play initial ring sound
-            ringSound.play().catch(e => console.log("Could not play ring sound:", e));
-
-            const modal = document.getElementById('incoming-call-modal');
-            modal.classList.remove('hidden');
-        }
-
-        function answerCall() {
-            const modal = document.getElementById('incoming-call-modal');
-            modal.classList.add('hidden');
-
-            // Stop blinking title and restore it
-            clearInterval(titleInterval);
-            document.title = originalTitle;
-            
-            if (isAlarmPlaying) return;
-            isAlarmPlaying = true;
-            
-            document.getElementById('status').innerHTML = `<div class="text-red-400 text-2xl font-bold animate-ping">!!! ALARM ACTIVE !!!</div>`;
-            document.getElementById('stop-alarm-container').classList.remove('hidden');
-            
-            alarmSound.play();
-        }
-        
-        function stopAlarm() {
-            alarmSound.pause();
-            alarmSound.currentTime = 0;
-            isAlarmPlaying = false;
-
-            // Ensure title is restored if alarm is stopped without answering
-            clearInterval(titleInterval);
-            document.title = originalTitle;
-            
-            document.getElementById('stop-alarm-container').classList.add('hidden');
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = `
-                <div class="flex items-center justify-center">
-                    <div class="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                    Waiting for a call...
-                </div>
-            `;
-        }
-
-        function checkNotificationStatus() {
-            if (!("Notification" in window)) return;
-            const statusDiv = document.getElementById('notification-status');
-            if(!statusDiv) return;
-            if (Notification.permission === "granted") {
-                statusDiv.innerHTML = `<p class="text-green-400 text-sm">✓ Notifications Enabled</p>`;
-            } else if (Notification.permission === "denied") {
-                statusDiv.innerHTML = `<p class="text-yellow-500 text-sm">Notifications blocked in browser settings.</p>`;
-            } else {
-                 statusDiv.innerHTML = `<p class="text-gray-400 text-sm">Click 'Ready to Receive' to enable notifications.</p>`;
-            }
-        }
-        async function requestNotificationPermission() {
-            if (!("Notification" in window)) { alert("This browser does not support notifications."); return; }
-            await Notification.requestPermission();
-            checkNotificationStatus();
-        }
-        function showNotification() {
-            if (Notification.permission === "granted") {
-                new Notification("Bobo is Calling!", {
-                    body: "She needs you! Open this page to hear the alarm.",
-                    icon: "https://placehold.co/192x192/f871b5/ffffff?text=B",
-                    vibrate: [200, 100, 200, 100, 200]
-                });
             }
         }
 
@@ -439,32 +292,28 @@
             }
             document.body.removeChild(textArea);
             setTimeout(() => {
-                btn.innerHTML = "Copy Bobo's Link";
+                btn.innerHTML = "Copy Meli's Link";
             }, 2000);
         }
 
-        function createStarrySky() {
-            starrySky.innerHTML = '';
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                const size = Math.random() * 2 + 1;
-                star.style.width = `${size}px`;
-                star.style.height = `${size}px`;
-                star.style.top = `${Math.random() * 100}%`;
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.animationDelay = `${Math.random() * 2}s`;
-                starrySky.appendChild(star);
+        function createDreamyBackground() {
+            const phrases = ["Je t'aime", "Ma princesse", "Meli", "Tu es belle", "Mon cœur", "Ma vie"];
+            const elements = [];
+            for(let i = 0; i < 15; i++) {
+                elements.push({ type: 'heart', content: '❤' });
+                elements.push({ type: 'phrase', content: phrases[i % phrases.length] });
             }
-            for (let i = 0; i < 3; i++) {
-                const shootingStar = document.createElement('div');
-                shootingStar.className = 'shooting-star';
-                shootingStar.style.top = `${Math.random() * 60 - 20}%`;
-                shootingStar.style.right = `${Math.random() * 100}%`;
-                shootingStar.style.animationDelay = `${Math.random() * 15}s`;
-                shootingStar.style.animationDuration = `${2 + Math.random() * 5}s`;
-                starrySky.appendChild(shootingStar);
-            }
+
+            elements.forEach(el => {
+                const item = document.createElement('div');
+                item.textContent = el.content;
+                item.className = `floating-element ${el.type}`;
+                
+                item.style.left = `${Math.random() * 100}vw`;
+                item.style.animationDuration = `${15 + Math.random() * 15}s`;
+                item.style.animationDelay = `${Math.random() * 15}s`;
+                dreamyBg.appendChild(item);
+            });
         }
     </script>
 </body>
