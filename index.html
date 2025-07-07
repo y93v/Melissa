@@ -110,15 +110,15 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- Firebase Configuration ---
-        // CRITICAL FIX: Replace these placeholder values with your own Firebase project configuration!
-        // You can find this in your Firebase project settings -> SDK setup & configuration.
+        // This configuration is now correctly filled in.
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyCwwd2zPJWZcgH5feUyDbQmLhmy4528f0o",
+            authDomain: "bobo-call.firebaseapp.com",
+            projectId: "bobo-call",
+            storageBucket: "bobo-call.appspot.com",
+            messagingSenderId: "343912649064",
+            appId: "1:343912649064:web:75c771f24be10821bb86dd",
+            measurementId: "G-39BKTFQXQ6"
         };
         
         const appId = 'bobo-call-app-final'; // This can be a static name for your app's data path
@@ -128,12 +128,12 @@
         const appContainer = document.getElementById('app');
         const starrySky = document.getElementById('starry-sky');
 
-        // Check if the config is still the placeholder
-        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        // Check if the config is valid before initializing
+        if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
             appContainer.innerHTML = `
                 <div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
                     <h1 class="text-3xl font-bold text-yellow-300 mb-4">Configuration Needed</h1>
-                    <p class="text-gray-300">Please replace the placeholder Firebase configuration in the HTML file with your own project's credentials before deploying.</p>
+                    <p class="text-gray-300">The Firebase configuration is missing. Please add it to the HTML file.</p>
                 </div>
             `;
         } else {
