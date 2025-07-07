@@ -1,490 +1,452 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Je t'aime ❤️</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: radial-gradient(circle, #2c001e, #1a0012, #050505);
-      height: 100%;
-      font-family: 'Courier New', monospace;
-      cursor: pointer;
-      /* Prevents blue highlight on tap on mobile */
-      -webkit-tap-highlight-color: transparent;
-      user-select: none; /* Prevents text selection on mobile */
-    }
-      
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    .center-message {
-      color: #ff85c1;
-      font-size: clamp(3rem, 12vw, 7rem); /* Adjusted for better scaling */
-      text-align: center;
-      opacity: 0;
-      text-shadow: 
-        0 0 5px #ff69b4,
-        0 0 10px #ff69b4,
-        0 0 20px #ff1493,
-        0 0 40px #ff1493,
-        0 0 60px #ff1493;
-      animation: fadeIn 2s ease-in-out 1s forwards, float 8s ease-in-out 3s infinite;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes float {
-      0%   { transform: scale(1) translateY(0px); }
-      50%  { transform: scale(1.05) translateY(-20px); }
-      100% { transform: scale(1) translateY(0px); }
-    }
-
-    @keyframes border-glow {
-      0%   { border-color: #ff1493; box-shadow: 0 0 50px rgba(255, 20, 147, 0.6); }
-      50%  { border-color: #ff85c1; box-shadow: 0 0 70px rgba(255, 133, 193, 0.8); }
-      100% { border-color: #ff1493; box-shadow: 0 0 50px rgba(255, 20, 147, 0.6); }
-    }
-    
-    .action-button-container {
-      position: absolute;
-      bottom: 30px;
-      z-index: 20;
-    }
-    #start-game-container {
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    #message-button-container {
-      right: 30px;
-    }
-    
-    .game-button {
-      background: rgba(255, 105, 180, 0.1);
-      border: 2px solid #ff69b4;
-      color: #ffc0cb;
-      padding: 15px 30px;
-      font-family: 'Courier New', monospace;
-      font-size: 18px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(5px);
-      box-shadow: 0 0 15px rgba(255, 105, 180, 0.2), inset 0 0 10px rgba(255, 105, 180, 0.2);
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-    }
-    .game-button:hover {
-      background: rgba(255, 105, 180, 0.3);
-      box-shadow: 0 0 30px rgba(255, 105, 180, 0.7), inset 0 0 15px rgba(255, 105, 180, 0.4);
-      color: white;
-      transform: translateY(-3px) scale(1.05);
-    }
-    #showMessageBtn {
-        width: 60px;
-        height: 60px;
-        padding: 0;
-        font-size: 24px;
-        font-weight: bold;
-    }
-    
-    .modal {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 100; display: none; align-items: center;
-      justify-content: center; padding: 15px; opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    .modal.show { display: flex; opacity: 1; }
-
-    .modal-content {
-      background: rgba(26, 2, 13, 0.6);
-      backdrop-filter: blur(10px);
-      border: 2px solid #ff1493;
-      border-radius: 30px; 
-      padding: 30px 40px; width: 100%; max-width: 500px;
-      text-align: center; color: #ffc0cb;
-      position: relative; transform: scale(0.9);
-      transition: transform 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-      animation: border-glow 4s ease-in-out infinite;
-      box-sizing: border-box;
-    }
-    .modal.show .modal-content { transform: scale(1); }
-    
-    #game-question {
-      font-size: clamp(20px, 4vw, 24px);
-      text-shadow: 0 0 10px #ff1493;
-      margin-bottom: 40px; min-height: 50px; line-height: 1.4;
-    }
-    #special-message {
-        font-size: clamp(16px, 3vw, 18px);
-        text-align: left;
-        line-height: 1.8;
-        text-shadow: 0 0 5px #ff69b4;
-    }
-    
-    .game-buttons {
-      position: relative; display: flex;
-      justify-content: center; gap: 20px;
-      height: 50px; align-items: center;
-    }
-    
-    #yesBtn {
-      position: absolute;
-      transition: top 0.2s ease, left 0.2s ease, transform 0.3s ease;
-    }
-    
-    #win-message {
-      font-size: clamp(22px, 5vw, 28px);
-      font-weight: bold;
-      line-height: 1.6; margin: 20px 0;
-      text-shadow: 0 0 10px #ff69b4;
-    }
-    
-    .modal-close {
-      position: absolute; top: 10px; right: 20px;
-      font-size: 35px; font-weight: bold;
-      color: #ff69b4; cursor: pointer;
-      transition: transform 0.2s, color 0.2s;
-    }
-    .modal-close:hover {
-      transform: scale(1.2) rotate(90deg); color: white;
-    }
-
-    /* --- Mobile Responsiveness --- */
-    @media (max-width: 600px) {
-        .action-button-container {
-            bottom: 20px;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bobo's Call</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #020218;
+            color: #f0f0f0;
+            overflow: hidden;
         }
-        #message-button-container {
-            right: 20px;
+        .dancing-script {
+            font-family: 'Dancing Script', cursive;
         }
-        .game-button {
-            padding: 12px 25px;
-            font-size: 16px;
+        #starry-sky {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
         }
-        #showMessageBtn {
-            width: 50px;
-            height: 50px;
-            font-size: 20px;
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
         }
-        .modal-content {
-            padding: 25px;
-            width: 95%;
+        .shooting-star {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(-45deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+            border-radius: 999px;
+            filter: drop-shadow(0 0 6px white);
+            animation: shooting-star-animation 15s linear infinite;
         }
-        #game-question {
-            font-size: 18px;
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
-        #special-message {
-            font-size: 15px;
-            line-height: 1.7;
+        @keyframes shooting-star-animation {
+            0% { transform: translateX(0) translateY(0) rotate(45deg); opacity: 1; }
+            100% { transform: translateX(-150vw) translateY(150vh) rotate(45deg); opacity: 0; }
         }
-    }
-
-  </style>
+        .glass-card {
+            position: relative;
+            z-index: 1;
+            background: rgba(12, 5, 32, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 105, 180, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(248, 71, 171, 0.15);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #f871b5, #a855f7);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(248, 113, 181, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 35px rgba(248, 113, 181, 0.7);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .heart-btn {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #f871b5, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 30px #f871b5;
+            animation: heart-pulse 2s infinite;
+        }
+        .heart-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px #f871b5;
+        }
+        @keyframes heart-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px #f871b5; }
+            50% { transform: scale(1.05); box-shadow: 0 0 45px #f871b5; }
+            100% { transform: scale(1); box-shadow: 0 0 30px #f871b5; }
+        }
+        .fade-in {
+            animation: fadeInAnimation 1s ease-in forwards;
+        }
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
 
-<audio id="bgMusic" loop playsinline>
-  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f0817cc1aa.mp3?filename=romantic-love-112195.mp3" type="audio/mp3">
-  Votre navigateur ne supporte pas l'élément audio.
-</audio>
+    <div id="starry-sky"></div>
+    <div id="app" class="min-h-screen flex items-center justify-center p-4"></div>
 
-<canvas id="main-canvas"></canvas>
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-<div class="overlay">
-  <div class="center-message">Je t'aime ❤️</div>
-</div>
+        // --- Firebase Configuration ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bobo-call-app-final';
 
-<div class="action-button-container" id="start-game-container">
-    <button id="startGameBtn" class="game-button">Cliquez pour Jouer</button>
-</div>
-<div class="action-button-container" id="message-button-container">
-    <button id="showMessageBtn" class="game-button">!</button>
-</div>
-
-<!-- Game Modal -->
-<div id="gameModal" class="modal">
-    <div class="modal-content">
-         <span class="modal-close" id="closeGameModal">&times;</span>
-         <h2 id="game-question">M'aimes-tu plus que je ne t'aime ?</h2>
-         <div class="game-buttons">
-            <button id="yesBtn" class="game-button">Oui</button>
-            <button id="noBtn" class="game-button">Non</button>
-         </div>
-    </div>
-</div>
-
-<!-- Win Modal -->
-<div id="winModal" class="modal">
-    <div class="modal-content">
-        <span class="modal-close" id="closeWinModal">&times;</span>
-        <p id="win-message">Bien sûr, je gagne toujours ✨👹<br>hihihi</p>
-    </div>
-</div>
-
-<!-- Special Message Modal -->
-<div id="specialMessageModal" class="modal">
-    <div class="modal-content">
-        <span class="modal-close" id="closeSpecialMessageModal">&times;</span>
-        <p id="special-message">
-            Hey Meli…
-            <br><br>
-            J'espère juste que cette petite chose sur laquelle j'ai veillé a pu te faire sourire, ne serait-ce qu'un petit peu. &lt;3
-            <br><br>
-            Je sais que les deux prochains jours peuvent sembler un peu longs et un peu lourds aussi, mais on va traverser ça ensemble, d'accord ? Et une fois que tout sera fini, je serai à nouveau à toi, entièrement et tranquillement comme toujours. &lt;3
-            <br><br>
-            Alors tiens bon, vas-y doucement, et n'oublie pas que je suis juste là même si je ne dis pas grand-chose. 🫶✨
-        </p>
-    </div>
-</div>
-
-
-<script>
-  // Canvas Setup
-  const mainCanvas = document.getElementById("main-canvas");
-  const ctx = mainCanvas.getContext("2d");
-  const bgMusic = document.getElementById("bgMusic");
-  let musicStarted = false;
-
-  let width = mainCanvas.width = window.innerWidth;
-  let height = mainCanvas.height = window.innerHeight;
-
-  // --- Matrix Rain background ---
-  const fontSize = 16;
-  let columns = Math.ceil(width / fontSize);
-  let drops = [];
-  for(let i = 0; i < columns; i++) {
-    drops[i] = 1;
-  }
-  
-  let time = 0;
-  const baseHue = 300; 
-  const hueRange = 30;
-  
-  const fireworks = [];
-
-  function createExplosion(x, y) {
-      const particleCount = 20;
-      const currentHue = baseHue + Math.sin(time) * hueRange; 
-      for (let i = 0; i < particleCount; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = Math.random() * 4 + 1;
-          fireworks.push({
-              x, y,
-              dx: Math.cos(angle) * speed,
-              dy: Math.sin(angle) * speed,
-              text: "Meli",
-              size: 12 + Math.random() * 8,
-              alpha: 1,
-              gravity: 0.08,
-              color: `hsl(${currentHue}, 100%, 75%)`
-          });
-      }
-  }
-
-  function drawFireworks() {
-      for (let i = fireworks.length - 1; i >= 0; i--) {
-          const p = fireworks[i];
-          ctx.globalAlpha = p.alpha;
-          ctx.fillStyle = p.color;
-          ctx.font = `${p.size}px monospace`;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 10;
-          ctx.fillText(p.text, p.x, p.y);
-          p.x += p.dx;
-          p.y += p.dy;
-          p.dy += p.gravity;
-          p.alpha -= 0.02;
-          if (p.alpha <= 0) fireworks.splice(i, 1);
-      }
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
-  }
-  
-  // Main Animation Loop
-  function animate() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-    ctx.fillRect(0, 0, width, height);
-
-    time += 0.01;
-    const newHue = baseHue + Math.sin(time) * hueRange;
-    const newColor = `hsl(${newHue}, 100%, 70%)`;
-    
-    ctx.font = `${fontSize}px monospace`;
-    ctx.fillStyle = newColor;
-    ctx.shadowColor = newColor;
-    ctx.shadowBlur = 10;
-    
-    for (let i = 0; i < drops.length; i++) {
-        const x = i * fontSize;
-        const y = drops[i] * fontSize;
-        ctx.fillText("Meli", x, y);
-
-        if (y > height && Math.random() > 0.975) {
-            drops[i] = 0;
+        // --- App Initialization ---
+        let db, auth;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.error("Firebase initialization failed:", e);
+            document.getElementById('app').innerHTML = `<div class="text-center text-red-400">Server connection failed. The app cannot run.</div>`;
         }
-        drops[i]++;
-    }
-    
-    ctx.shadowBlur = 0;
-    
-    drawFireworks();
 
-    requestAnimationFrame(animate);
-  }
+        // --- App State ---
+        let userId = null;
+        let callId = null;
+        let callListener = null;
+        let isAlarmPlaying = false;
 
-  // --- General Setup & Event Listeners ---
-  function startMusic() {
-    if (!musicStarted) {
-      bgMusic.play().catch(e => console.error("Audio playback failed.", e));
-      musicStarted = true;
-    }
-  }
-  
-  function handleInteraction(e) {
-      if (!e.target.closest('.modal-content') && !e.target.classList.contains('game-button')) {
-        let x, y;
-        if(e.touches && e.touches.length > 0) {
-            x = e.touches[0].clientX;
-            y = e.touches[0].clientY;
-        } else {
-            x = e.clientX;
-            y = e.clientY;
-        }
-        createExplosion(x, y);
-    }
-    startMusic();
-  }
+        const appContainer = document.getElementById('app');
+        const starrySky = document.getElementById('starry-sky');
 
-  document.body.addEventListener("click", handleInteraction);
-  document.body.addEventListener("touchstart", handleInteraction);
-
-  
-  window.addEventListener('resize', () => {
-    width = mainCanvas.width = window.innerWidth;
-    height = mainCanvas.height = window.innerHeight;
-    columns = Math.ceil(width / fontSize);
-    drops = [];
-    for(let i = 0; i < columns; i++) {
-        drops[i] = 1;
-    }
-  });
-
-  // --- Game and Modals Logic ---
-  const startGameBtn = document.getElementById('startGameBtn');
-  const showMessageBtn = document.getElementById('showMessageBtn');
-  
-  const gameModal = document.getElementById('gameModal');
-  const winModal = document.getElementById('winModal');
-  const specialMessageModal = document.getElementById('specialMessageModal');
-  
-  const closeGameModalBtn = document.getElementById('closeGameModal');
-  const closeWinModalBtn = document.getElementById('closeWinModal');
-  const closeSpecialMessageModalBtn = document.getElementById('closeSpecialMessageModal');
-  
-  const yesBtn = document.getElementById('yesBtn');
-  const noBtn = document.getElementById('noBtn');
-  
-  let yesButtonEscapes = 0;
-  const maxEscapes = 5;
-  let isYesBtnOnLeft = true; 
-
-  startGameBtn.addEventListener('click', () => {
-      gameModal.classList.add('show');
-      yesButtonEscapes = 0;
-      yesBtn.style.display = 'inline-block';
-      yesBtn.style.position = 'relative';
-      yesBtn.style.top = 'auto';
-      yesBtn.style.left = 'auto';
-      isYesBtnOnLeft = true; 
-  });
-  
-  showMessageBtn.addEventListener('click', () => {
-    specialMessageModal.classList.add('show');
-  });
-  
-  noBtn.addEventListener('click', () => {
-    gameModal.classList.remove('show');
-    winModal.classList.add('show');
-  });
-
-  yesBtn.addEventListener('click', (event) => {
-    event.preventDefault();
-    yesButtonEscapes++;
-    if (yesButtonEscapes >= maxEscapes) {
-        yesBtn.style.display = 'none';
-        return;
-    }
-    yesBtn.style.position = 'absolute';
-    const container = yesBtn.parentElement;
-    const noBtnEl = document.getElementById('noBtn');
-
-    let newLeft, newTop;
-    let attempts = 0;
-
-    do {
-        const containerWidth = container.offsetWidth;
-        const buttonWidth = yesBtn.offsetWidth;
-        const buttonHeight = yesBtn.offsetHeight;
+        // --- Core Functions ---
         
-        const noBtnOffsetLeft = noBtnEl.offsetLeft;
-        const noBtnOffsetWidth = noBtnEl.offsetWidth;
+        async function main() {
+            if (!db || !auth) return;
+            
+            const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (token) {
+                await signInWithCustomToken(auth, token).catch(error => console.error("Custom token sign-in failed:", error));
+            } else {
+                await signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+            }
 
-        if (isYesBtnOnLeft) {
-            newLeft = (noBtnOffsetLeft + noBtnOffsetWidth) + Math.random() * (containerWidth - (noBtnOffsetLeft + noBtnOffsetWidth) - buttonWidth);
-        } else {
-            newLeft = Math.random() * (noBtnOffsetLeft - buttonWidth);
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const senderTargetId = urlParams.get('id');
+                    if (senderTargetId) {
+                        callId = senderTargetId;
+                        setupSenderUI();
+                    } else {
+                        callId = userId;
+                        setupReceiverUI();
+                        listenForCall();
+                    }
+                    createStarrySky();
+                } else {
+                    console.log("User is not signed in.");
+                }
+            });
         }
 
-        newTop = Math.random() * (container.offsetHeight - buttonHeight);
-        
-        attempts++;
-    } while (attempts < 50); 
+        function setupReceiverUI() {
+            appContainer.innerHTML = `
+                <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
+                    <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script">Bobo's Call</h1>
+                    <p class="text-gray-300 mb-6">Your Personal Receiver</p>
+                    
+                    <div id="notification-setup" class="mb-4 p-3 bg-black/20 rounded-lg">
+                        <button id="enableNotificationsBtn" class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg text-md">
+                            Enable Notifications
+                        </button>
+                    </div>
+                    
+                    <button id="copyLinkBtn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg mb-4">
+                        Copy Bobo's Link
+                    </button>
 
-    isYesBtnOnLeft = !isYesBtnOnLeft; 
+                    <div id="share-instructions" class="hidden mt-4 p-4 bg-indigo-900/50 border border-indigo-500 rounded-lg text-left">
+                        <h3 class="font-bold text-lg text-yellow-300">How to Share This Link:</h3>
+                        <p class="text-sm mt-2">This app needs to be hosted online to work for others.</p>
+                        <ol class="list-decimal list-inside text-sm mt-2 space-y-1">
+                            <li>Save this page's code as an <code class="bg-black/50 p-1 rounded">index.html</code> file.</li>
+                            <li>Upload it to a free host like Netlify or GitHub Pages.</li>
+                            <li>Replace the <code class="bg-black/50 p-1 rounded">'your-website.com'</code> part of the copied link with your new site's address.</li>
+                        </ol>
+                        <p class="text-xs mt-3 text-gray-400"><strong>Example:</strong> If your site is <code class="bg-black/50 p-1 rounded">bobo-call.netlify.app</code>, the final link will be <code class="bg-black/50 p-1 rounded">https://bobo-call.netlify.app?id=${callId}</code></p>
+                    </div>
 
-    yesBtn.style.top = `${newTop}px`;
-    yesBtn.style.left = `${newLeft}px`;
-  });
+                    <div id="status" class="mt-4 text-lg text-green-400 transition-all duration-300">
+                        <div class="flex items-center justify-center">
+                            <div class="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                            Waiting for a call...
+                        </div>
+                    </div>
+                    
+                    <div id="stop-alarm-container" class="hidden mt-6">
+                         <p class="text-yellow-300 mb-4 text-xl animate-pulse font-semibold">INCOMING CALL!</p>
+                         <p class="text-gray-300">To stop the alarm, please <strong>close this tab</strong> or <strong>refresh the page</strong>.</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
+            document.getElementById('enableNotificationsBtn').addEventListener('click', requestNotificationPermission);
+            checkNotificationStatus();
+        }
 
-  function closeModal(modal) { modal.classList.remove('show'); }
-  closeGameModalBtn.addEventListener('click', () => closeModal(gameModal));
-  closeWinModalBtn.addEventListener('click', () => closeModal(winModal));
-  closeSpecialMessageModalBtn.addEventListener('click', () => closeModal(specialMessageModal));
-  
-  gameModal.addEventListener('click', (e) => { if (e.target === gameModal) closeModal(gameModal); });
-  winModal.addEventListener('click', (e) => { if (e.target === winModal) closeModal(winModal); });
-  specialMessageModal.addEventListener('click', (e) => { if (e.target === specialMessageModal) closeModal(specialMessageModal); });
+        function setupSenderUI() {
+            appContainer.innerHTML = `
+                <div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
+                    <h1 class="text-6xl font-bold text-pink-300 mb-4 dancing-script" style="text-shadow: 0 0 15px #f871b5;">For my Bobo</h1>
+                    <p class="text-gray-300 mb-6 text-lg">When you need me, just call.</p>
+                    
+                    <button id="sendCallBtn" class="heart-btn text-white font-bold text-2xl flex items-center justify-center flex-col leading-tight mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="senderStatus" class="text-lg text-gray-400 h-6 transition-all duration-300"></div>
 
-  // Start the smooth animation loop
-  animate();
+                    <div class="mt-8 border-t border-pink-500/20 pt-6">
+                        <div id="geminiMessageContainer" class="hidden min-h-[6rem] p-4 bg-black/20 rounded-lg text-center flex items-center justify-center">
+                            <p class="text-gray-300 italic"></p>
+                        </div>
+                        <button id="getGeminiMessageBtn" class="w-full mt-4 btn-secondary text-white font-bold py-3 px-4 rounded-lg text-md">
+                            ✨ Ask the Stars for a Message
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('sendCallBtn').addEventListener('click', sendCall);
+            document.getElementById('getGeminiMessageBtn').addEventListener('click', getRomanticMessage);
+        }
 
-</script>
+        // --- Gemini API Function ---
+        async function getRomanticMessage() {
+            const button = document.getElementById('getGeminiMessageBtn');
+            const messageContainer = document.getElementById('geminiMessageContainer');
+            const messageP = messageContainer.querySelector('p');
 
+            button.disabled = true;
+            button.innerHTML = '<span>Asking the cosmos...</span>';
+            messageP.innerHTML = '';
+            messageContainer.classList.remove('hidden');
+
+            const prompt = "Write a very short, poetic, and romantic message for someone special, as if it were whispered by the stars. Keep it under 20 words.";
+            
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+            };
+            const apiKey = ""; // API key will be provided by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    messageP.textContent = `"${text}"`;
+                    messageContainer.classList.add('fade-in');
+                } else {
+                    throw new Error("Unexpected API response structure.");
+                }
+
+            } catch (error) {
+                console.error("Gemini API error:", error);
+                messageP.textContent = "The stars are quiet right now. Please try again later.";
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '✨ Ask the Stars for a Message';
+            }
+        }
+
+
+        function listenForCall() {
+            if (callListener) callListener();
+            const callRef = doc(db, `artifacts/${appId}/public/data/calls`, callId);
+            
+            callListener = onSnapshot(callRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.triggeredAt && (serverTimestamp().seconds - data.triggeredAt.seconds < 30)) {
+                        triggerAlarm();
+                    }
+                }
+            }, (error) => {
+                console.error("Snapshot listener error:", error);
+                const statusDiv = document.getElementById('status');
+                if (statusDiv) {
+                    statusDiv.innerHTML = `<span class="text-red-500">Permission Error. Cannot listen for calls.</span>`;
+                }
+            });
+        }
+
+        async function sendCall() {
+            const sendButton = document.getElementById('sendCallBtn');
+            const senderStatus = document.getElementById('senderStatus');
+            
+            sendButton.disabled = true;
+            sendButton.style.animation = 'none';
+            sendButton.innerHTML = `<span class="text-xl">Sent!</span>`;
+
+            const callRef = doc(db, `artifacts/${appId}/public/data/calls`, callId);
+            try {
+                await setDoc(callRef, { triggeredAt: serverTimestamp() });
+                senderStatus.innerHTML = `<span class="text-green-400">Your call has been sent!</span>`;
+                sendButton.style.transform = 'scale(0.8)';
+                sendButton.style.opacity = '0.7';
+            } catch (error) {
+                console.error("Error sending call:", error);
+                senderStatus.innerHTML = `<span class="text-red-400">Error! Please try again.</span>`;
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<span>Retry</span>';
+            }
+        }
+
+        async function triggerAlarm() {
+            showNotification();
+            if (isAlarmPlaying) return;
+            isAlarmPlaying = true;
+            await Tone.start();
+            
+            document.getElementById('status').innerHTML = `<div class="text-red-400 text-2xl font-bold animate-ping">!!! INCOMING CALL !!!</div>`;
+            document.getElementById('stop-alarm-container').classList.remove('hidden');
+
+            const synth = new Tone.DuoSynth({
+                vibratoAmount: 0.5,
+                vibratoRate: 5,
+                harmonicity: 1.5,
+                voice0: { volume: -10, portamento: 0, oscillator: { type: "square" }, filterEnvelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 } },
+                voice1: { volume: -10, portamento: 0, oscillator: { type: "sawtooth" }, filterEnvelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.4, release: 1.2 } }
+            }).toDestination();
+            
+            const pattern = new Tone.Sequence((time, note) => {
+                synth.triggerAttackRelease(note, "8n", time);
+            }, ["C5", "G5", "Eb5", "G5"], "4n");
+            
+            pattern.loop = true;
+            Tone.Transport.bpm.value = 150;
+            Tone.Transport.start();
+            pattern.start(0);
+        }
+
+        // --- Notification Functions ---
+        function checkNotificationStatus() {
+            if (!("Notification" in window)) return;
+            const btnContainer = document.getElementById('notification-setup');
+            if (Notification.permission === "granted") {
+                btnContainer.innerHTML = `<p class="text-green-400 text-sm">✓ Notifications Enabled</p>`;
+            } else if (Notification.permission === "denied") {
+                btnContainer.innerHTML = `<p class="text-yellow-500 text-sm">Notifications blocked in browser settings.</p>`;
+            }
+        }
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) { alert("This browser does not support notifications."); return; }
+            Notification.requestPermission().then(checkNotificationStatus);
+        }
+        function showNotification() {
+            if (Notification.permission === "granted") {
+                new Notification("Bobo is Calling!", {
+                    body: "She needs you! Open this page to hear the alarm.",
+                    icon: "https://placehold.co/192x192/f871b5/ffffff?text=B",
+                    vibrate: [200, 100, 200, 100, 200]
+                });
+            }
+        }
+
+        // --- Utility Functions ---
+        function copyShareLink() {
+            const url = `https://your-website.com?id=${callId}`;
+            const btn = document.getElementById('copyLinkBtn');
+            const instructions = document.getElementById('share-instructions');
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = url;
+            textArea.style.position = "fixed";
+            textArea.style.top = "-9999px";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                btn.innerHTML = 'Template Link Copied!';
+            } catch (err) {
+                btn.innerHTML = 'Copy Failed';
+            }
+
+            document.body.removeChild(textArea);
+            
+            instructions.classList.remove('hidden');
+            
+            setTimeout(() => {
+                btn.innerHTML = "Copy Bobo's Link";
+            }, 3000);
+        }
+
+        function createStarrySky() {
+            starrySky.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                starrySky.appendChild(star);
+            }
+            for (let i = 0; i < 3; i++) {
+                const shootingStar = document.createElement('div');
+                shootingStar.className = 'shooting-star';
+                shootingStar.style.top = `${Math.random() * 60 - 20}%`;
+                shootingStar.style.right = `${Math.random() * 100}%`;
+                shootingStar.style.animationDelay = `${Math.random() * 15}s`;
+                shootingStar.style.animationDuration = `${2 + Math.random() * 5}s`;
+                starrySky.appendChild(shootingStar);
+            }
+        }
+
+        // --- Start the App ---
+        main();
+    </script>
 </body>
 </html>
