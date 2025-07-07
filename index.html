@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <!-- Tone.js is no longer needed for the alarm sound -->
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -74,6 +74,10 @@
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 0 35px rgba(248, 113, 181, 0.7);
         }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
         .btn-danger {
             background: linear-gradient(45deg, #e11d48, #be123c);
             transition: all 0.3s ease;
@@ -111,6 +115,14 @@
 
     <div id="starry-sky"></div>
     <div id="app" class="min-h-screen flex items-center justify-center p-4"></div>
+    
+    <!-- New Audio Element for the alarm sound -->
+    <audio id="alarm-sound" loop preload="auto">
+        <!-- Using a reliable sound file from Google's library -->
+        <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
 
     <script type="module">
         // Firebase Imports
@@ -135,6 +147,7 @@
         let db, auth;
         const appContainer = document.getElementById('app');
         const starrySky = document.getElementById('starry-sky');
+        const alarmSound = document.getElementById('alarm-sound');
 
         if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
             appContainer.innerHTML = `<div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full"><h1 class="text-3xl font-bold text-yellow-300 mb-4">Configuration Needed</h1><p class="text-gray-300">Please add your Firebase project configuration to the HTML file.</p></div>`;
@@ -155,8 +168,6 @@
         let callId = null;
         let callListener = null;
         let isAlarmPlaying = false;
-        let alarmSynth = null;
-        let alarmPattern = null;
 
         // --- Core Functions ---
         async function main() {
@@ -189,9 +200,7 @@
                         Ready to Receive Calls
                     </button>
                 </div>
-                <div id="receiver-main" class="hidden">
-                    <!-- This will be populated after user interaction -->
-                </div>
+                <div id="receiver-main" class="hidden"></div>
             `;
             document.getElementById('start-listening-btn').addEventListener('click', initializeReceiver);
         }
@@ -209,6 +218,10 @@
                     <div id="notification-status" class="mb-4 p-3 bg-black/20 rounded-lg"></div>
                     <button id="copyLinkBtn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg mb-4">
                         Copy Bobo's Link
+                    </button>
+                    <!-- New Test Alarm Button -->
+                    <button id="test-alarm-btn" class="w-full btn-secondary text-white font-bold py-2 px-4 rounded-lg text-md mb-4">
+                        Test Alarm
                     </button>
                     <div id="status" class="mt-4 text-lg text-green-400 transition-all duration-300">
                         <div class="flex items-center justify-center">
@@ -233,11 +246,14 @@
             mainDiv.classList.remove('hidden');
             document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
             document.getElementById('stop-alarm-btn').addEventListener('click', stopAlarm);
+            document.getElementById('test-alarm-btn').addEventListener('click', triggerAlarm); // Test button calls triggerAlarm directly
 
-            await Tone.start();
+            // Unlock audio by playing and pausing the sound on user interaction.
+            alarmSound.play().catch(() => {}); // Play and immediately catch error if it fails
+            alarmSound.pause();
+
             await requestNotificationPermission();
             checkNotificationStatus();
-
             listenForCall();
         }
 
@@ -319,47 +335,20 @@
             }
         }
 
-        async function triggerAlarm() {
+        function triggerAlarm() {
             showNotification();
             if (isAlarmPlaying) return;
             isAlarmPlaying = true;
             
-            await Tone.start();
             document.getElementById('status').innerHTML = `<div class="text-red-400 text-2xl font-bold animate-ping">!!! INCOMING CALL !!!</div>`;
             document.getElementById('stop-alarm-container').classList.remove('hidden');
-
-            // Create an iPhone Marimba-like sound
-            alarmSynth = new Tone.PolySynth(Tone.Synth, {
-                oscillator: { type: 'sine' },
-                envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
-            }).toDestination();
             
-            const marimbaPattern = [
-                'G5', 'F#5', 'D#5', 'B4', 'E5', 'G#4', 'C#5', 'A4'
-            ];
-
-            alarmPattern = new Tone.Sequence((time, note) => {
-                alarmSynth.triggerAttackRelease(note, '8n', time);
-            }, marimbaPattern, '8n');
-
-            Tone.Transport.bpm.value = 180;
-            alarmPattern.loop = true;
-            alarmPattern.start(0);
-            Tone.Transport.start();
+            alarmSound.play();
         }
         
         function stopAlarm() {
-            if (alarmPattern) {
-                alarmPattern.stop(0);
-                alarmPattern.dispose();
-            }
-            if (alarmSynth) {
-                alarmSynth.releaseAll();
-                alarmSynth.dispose();
-            }
-            Tone.Transport.stop();
-            Tone.Transport.cancel();
-            
+            alarmSound.pause();
+            alarmSound.currentTime = 0; // Rewind to the start
             isAlarmPlaying = false;
             
             document.getElementById('stop-alarm-container').classList.add('hidden');
