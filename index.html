@@ -1,342 +1,384 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>For Meli</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Notre Constellation de Cœur</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300&display=swap" rel="stylesheet">
     <style>
-        body {
+        :root {
+            --dark-sky-1: #00000c;
+            --dark-sky-2: #100a1c;
+            --text-light: #f0f0f5;
+            --star-color: #ffffff;
+            --blood-red-glow: #B82C2C;
+            --constellation-color: rgba(255, 255, 255, 0.6);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(ellipse at bottom, var(--dark-sky-2) 0%, var(--dark-sky-1) 100%);
             font-family: 'Poppins', sans-serif;
-            background-color: #4c1d42; /* Deep, dreamy magenta background */
-            color: #fce7f3; /* Soft pink text */
-            overflow-y: auto;
+            cursor: pointer;
+            /* Fix for blue tap highlight on mobile */
+            -webkit-tap-highlight-color: transparent;
         }
-        .dancing-script {
-            font-family: 'Dancing Script', cursive;
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
-        #dreamy-bg {
-            position: fixed;
+
+        .overlay {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            overflow: hidden;
-            background: radial-gradient(ellipse at center, #702f61 0%, #4c1d42 70%);
-        }
-        .floating-element {
-            position: absolute;
-            user-select: none;
-            animation: float-up 25s infinite linear;
-            opacity: 0;
-        }
-        .floating-element.heart {
-            font-size: 2.5rem;
-            color: rgba(249, 168, 212, 0.3);
-            text-shadow: 0 0 10px rgba(249, 168, 212, 0.5);
-        }
-        .floating-element.phrase {
-            font-size: 1.5rem;
-            color: rgba(244, 114, 182, 0.4);
-            font-family: 'Dancing Script', cursive;
-            /* New Glow Effect for phrases */
-            text-shadow: 0 0 8px rgba(244, 114, 182, 0.7);
-        }
-        @keyframes float-up {
-            0% { transform: translateY(100vh) scale(0.7); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-10vh) scale(1.3); opacity: 0; }
-        }
-        .glass-card {
-            position: relative;
-            z-index: 1;
-            background: rgba(88, 28, 79, 0.6);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 20px;
-            border: 1px solid rgba(249, 168, 212, 0.2);
-            box-shadow: 0 0 25px rgba(236, 72, 153, 0.3), 0 0 50px rgba(236, 72, 153, 0.1);
-        }
-        .btn-primary {
-            background: linear-gradient(45deg, #ec4899, #d946ef);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(219, 39, 119, 0.3), 0 0 15px rgba(236, 72, 153, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .btn-primary:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 30px rgba(219, 39, 119, 0.5), 0 0 30px rgba(236, 72, 153, 0.3);
-        }
-        .btn-secondary {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fbcfe8;
-            border: 1px solid #ec4899;
-        }
-        .heart-btn {
-            width: 180px;
-            height: 180px;
-            background: linear-gradient(135deg, #f472b6, #ec4899);
+            z-index: 2;
             display: flex;
-            align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 35px #ec4899, 0 0 15px white inset;
-            animation: heart-pulse 2.5s infinite;
+            align-items: center;
+            text-align: center;
+            color: var(--text-light);
+            pointer-events: none;
         }
-        .heart-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 60px #f472b6, 0 0 20px white inset;
+
+        #intro-message {
+            opacity: 1;
+            transition: opacity 1.5s ease-out 1s;
+            max-width: 500px;
+            padding: 20px;
         }
-        @keyframes heart-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 35px #ec4899, 0 0 15px white inset; }
-            50% { transform: scale(1.05); box-shadow: 0 0 50px #f472b6, 0 0 20px white inset; }
-            100% { transform: scale(1); box-shadow: 0 0 35px #ec4899, 0 0 15px white inset; }
+
+        #intro-message h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+            text-shadow: 0 0 15px var(--blood-red-glow);
+        }
+
+        #intro-message p {
+            font-size: 1.2rem;
+            margin-top: 15px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+        
+        .memory-panel {
+            position: absolute;
+            z-index: 10;
+            background: rgba(10, 10, 20, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: var(--text-light);
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 300px;
+            width: 90%;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: all;
+        }
+
+        .memory-panel.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes fadeInText {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .memory-panel h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--star-color);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 12px rgba(255, 255, 255, 0.6);
+            animation: fadeInText 0.8s ease-out 0.3s backwards;
+        }
+
+        .memory-panel p {
+            font-size: 1rem;
+            line-height: 1.7;
+            opacity: 0;
+            margin-bottom: 0;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: fadeInText 0.8s ease-out 0.5s backwards;
+            animation-fill-mode: forwards;
+        }
+
+        @media (max-width: 768px) {
+            #intro-message h1 {
+                font-size: 2.5rem;
+            }
+            .memory-panel {
+                max-width: 85%;
+                padding: 20px;
+            }
+             .memory-panel h2 {
+                font-size: 1.5rem;
+            }
+            .memory-panel p {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div id="dreamy-bg"></div>
-    <div id="app" class="min-h-screen flex items-center justify-center p-4"></div>
+    <canvas id="starrySky"></canvas>
+    <div id="memory-panel-container"></div>
 
-    <script type="module">
-        // Firebase Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    <div class="overlay">
+        <div id="intro-message">
+            <h1>Pour Melissa</h1>
+            <p>Dans le silence de nos nuits, j'ai rassemblé nos souvenirs. Touche les étoiles, et laisse-les te raconter notre histoire.</p>
+        </div>
+    </div>
 
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCwwd2zPJWZcgH5feUyDbQmLhmy4528f0o",
-            authDomain: "bobo-call.firebaseapp.com",
-            projectId: "bobo-call",
-            storageBucket: "bobo-call.appspot.com",
-            messagingSenderId: "343912649064",
-            appId: "1:343912649064:web:75c771f24be10821bb86dd",
-            measurementId: "G-39BKTFQXQ6"
-        };
-        
-        const appId = 'meli-call-app-final';
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('starrySky');
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
 
-        // --- App Initialization ---
-        let db, auth;
-        const appContainer = document.getElementById('app');
-        const bgContainer = document.getElementById('dreamy-bg');
+            const introMessage = document.getElementById('intro-message');
+            const memoryPanelContainer = document.getElementById('memory-panel-container');
+            
+            let stars = [], memoryStars = [], particles = [], nebulaParticles = [], shootingStars = [];
+            let constellationLines = [];
+            let musicStarted = false;
+            let currentStep = 1;
+            let finalStar = null;
+            let nebulaRotation = 0;
 
-        if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
-            appContainer.innerHTML = `<div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full"><h1 class="text-3xl font-bold text-pink-400 mb-4">Configuration Needed</h1><p class="text-pink-200">Please add your Firebase project configuration to the HTML file.</p></div>`;
-        } else {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                main();
-            } catch (e) {
-                console.error("Firebase initialization failed:", e);
-                appContainer.innerHTML = `<div class="text-center text-red-500">Server connection failed. The app cannot run.</div>`;
+            const memories = {
+                1: { title: "Ton Silence, Ma Berceuse", text: "Ce n'était plus un jeu. C'était le monde réel, et il s'est effacé. Il ne restait que le son de ta respiration, un écho au mien. Cette nuit-là, je n'ai pas dormi, j'ai trouvé la paix. Une paix qui me manque cruellement aujourd'hui." },
+                2: { title: "Ton Rire, Mon Seul Écho", text: "Les jeux, Karine... tout n'était qu'un décor. La seule chose réelle, la seule chose que mon cœur cherchait, c'était l'écho de ton rire. C'était la preuve que, pour un instant, tout allait bien dans mon monde. Parce que tu y étais." },
+                3: { title: "Ces Notes qui Te Cherchaient", text: "Mes doigts étaient maladroits, mon cœur battait la chamade. Chaque note apprise dans le secret n'était pas pour la musique, c'était une prière pour voir ton visage s'illuminer. Ton sourire, ce jour-là, a validé chaque seconde de doute. C'était mon chef-d'œuvre." },
+                4: { title: "Mon Imagination Vaincue", text: "J'ai essayé, tu sais. J'ai tenté de te peindre avec les couleurs de tes mots. Mais quelle folie... Mon imagination la plus folle n'était qu'une pâle esquisse face à la lumière que tu es. Tu n'as pas dépassé mes rêves, tu les as rendus insignifiants." },
+                5: { title: "Le Combat pour Mon Monde", text: "Chaque refus était une blessure, mais abandonner aurait été mourir. Je ne me battais pas pour gagner un jeu, je me battais pour le droit de respirer le même air que toi. Ton 'oui' n'a pas été le début de tout, il a été le moment où mon monde a enfin trouvé son sens." },
+                6: { title: "Un Refuge dans le Chaos", text: "Le monde extérieur n'existait plus. Il n'y avait que nos rires stupides, si purs, si vrais. Dans ce chaos enfantin, j'ai trouvé un refuge, un endroit où la distance et la douleur ne pouvaient nous atteindre. J'essaie de me souvenir de ce sentiment chaque jour." },
+                final: { title: "Un Écho dans le Silence", text: "Le silence est assourdissant, n'est-ce pas ? Peut-être que ce geste est désespéré. Mais mon cœur, lourd de mots non dits, ne pouvait plus se taire. Pardonne ma fatigue, pardonne ma maladresse. Chaque étoile ici est un morceau de mon âme qui crie ton nom. C'est ma façon de te dire que je refuse de nous laisser devenir un souvenir." }
+            };
+
+            // --- Audio Setup ---
+            let piano, explosionSound, chimeSound;
+            function setupAudio() {
+                const reverb = new Tone.Reverb({ decay: 15, wet: 0.6 }).toDestination();
+                piano = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.01, decay: 1, sustain: 0.2, release: 3 },
+                    volume: -10
+                }).connect(reverb);
+
+                explosionSound = new Tone.NoiseSynth({
+                    noise: { type: 'white' },
+                    envelope: { attack: 0.001, decay: 0.5, sustain: 0 },
+                    volume: -5
+                }).toDestination();
+
+                chimeSound = new Tone.FMSynth({
+                    harmonicity: 5,
+                    modulationIndex: 10,
+                    envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.5 },
+                    volume: -8
+                }).connect(reverb);
+
+                const softNotes = [ "C4", "E4", "G4", "B4", "A4", "F4" ];
+                new Tone.Sequence((time, note) => {
+                    piano.triggerAttackRelease(note, "1n", time);
+                }, softNotes, "2m").start(0);
             }
-        }
-        
-        // --- App State ---
-        let userId = null;
-        let callId = null;
-        let callListener = null;
 
-        // --- Core Functions ---
-        async function main() {
-            if (!db || !auth) return;
-            try {
-                const userCredential = await signInAnonymously(auth);
-                userId = userCredential.user.uid;
-                const urlParams = new URLSearchParams(window.location.search);
-                const senderTargetId = urlParams.get('id');
-                if (senderTargetId) {
-                    callId = senderTargetId;
-                    setupSenderUI();
-                } else {
-                    callId = userId;
-                    setupReceiverUI();
-                }
-                createDreamyBackground();
-            } catch(error) {
-                console.error("Anonymous sign-in failed:", error);
-                appContainer.innerHTML = `<div class="text-center text-red-500">Authentication with server failed.</div>`;
+            // --- Star, Particle & Nebula Classes ---
+            class Star {
+                constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.radius = Math.random() * 1.2; this.opacity = Math.random() * 0.5 + 0.2; }
+                draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`; ctx.fill(); }
             }
-        }
 
-        function setupReceiverUI() {
-            appContainer.innerHTML = `
-                 <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-                    <h1 class="text-4xl font-bold text-pink-300 mb-2 dancing-script" style="text-shadow: 0 0 10px #ec4899;">Meli's Call</h1>
-                    <p class="text-pink-200 mb-6">Your Personal Receiver</p>
-                    <button id="copyLinkBtn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg text-lg mb-4">
-                        Copy Meli's Link
-                    </button>
-                    <div id="status" class="mt-4 text-lg text-pink-200 transition-all duration-300">
-                        <div class="flex items-center justify-center">
-                            <div class="w-3 h-3 bg-pink-400 rounded-full mr-2 animate-pulse"></div>
-                            Waiting for a call...
-                        </div>
-                    </div>
-                    <div id="call-log-container" class="mt-8 border-t border-pink-400/20 pt-4 text-left">
-                        <div class="flex justify-between items-center mb-2">
-                            <h2 class="text-xl font-bold text-pink-300">Call Log</h2>
-                            <button id="clear-log-btn" class="btn-secondary text-xs font-bold py-1 px-3 rounded-md">Clear Log</button>
-                        </div>
-                        <ul id="call-log-list" class="max-h-48 overflow-y-auto space-y-2 pr-2">
-                            <li class="text-gray-400 text-center">No calls received yet.</li>
-                        </ul>
-                    </div>
-                </div>
-            `;
-            document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
-            document.getElementById('clear-log-btn').addEventListener('click', clearLog);
-            listenForCall();
-        }
-
-        function setupSenderUI() {
-            appContainer.innerHTML = `
-                <div class="glass-card p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-                    <h1 class="text-6xl font-bold text-pink-300 mb-4 dancing-script" style="text-shadow: 0 0 20px #ec4899;">For my meli</h1>
-                    <p class="text-pink-200 mb-8 text-lg">When you need me, just call.</p>
-                    <button id="sendCallBtn" class="heart-btn text-white font-bold text-2xl flex items-center justify-center flex-col leading-tight mx-auto mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" viewBox="0 0 20 20" fill="currentColor">
-                           <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div id="senderStatus" class="text-lg text-pink-200 h-6 transition-all duration-300"></div>
-                </div>
-            `;
-            document.getElementById('sendCallBtn').addEventListener('click', sendCall);
-        }
-
-        function listenForCall() {
-            if (callListener) callListener();
-            const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
-            const q = query(historyCollectionRef);
-            callListener = onSnapshot(q, (querySnapshot) => {
-                const callHistory = [];
-                querySnapshot.forEach(doc => callHistory.push(doc.data()));
-                updateCallLogUI(callHistory);
-            }, (error) => {
-                console.error("Snapshot listener error:", error);
-            });
-        }
-
-        function updateCallLogUI(callHistory) {
-            const logList = document.getElementById('call-log-list');
-            if (!logList) return;
-            callHistory.sort((a, b) => b.triggeredAt.seconds - a.triggeredAt.seconds);
-            if (callHistory.length === 0) {
-                logList.innerHTML = `<li class="text-gray-400 text-center">No calls received yet.</li>`;
-                return;
+            class MemoryStar extends Star {
+                constructor(id, x, y) { super(); this.id = id; this.x = x; this.y = y; this.radius = window.innerWidth > 768 ? 10 : 8; this.baseRadius = this.radius; this.pulseSpeed = 0.03; this.pulse = Math.random() * Math.PI; this.isClicked = false; }
+                draw() { ctx.save(); const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 3); g.addColorStop(0, `rgba(255, 255, 255, 0.5)`); g.addColorStop(1, `rgba(255, 255, 255, 0)`); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'white'; ctx.shadowColor = 'white'; ctx.shadowBlur = 20; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = 'black'; ctx.font = `${this.radius}px 'Poppins', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(this.id, this.x, this.y); ctx.restore(); }
+                update() { this.pulse += this.pulseSpeed; if (this.id === currentStep) { this.radius = this.baseRadius + Math.sin(this.pulse) * 2.5; } else { this.radius = this.baseRadius; } }
             }
-            logList.innerHTML = '';
-            callHistory.forEach(call => {
-                const date = new Date(call.triggeredAt.seconds * 1000);
-                const formattedTime = date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-                const listItem = document.createElement('li');
-                listItem.className = 'bg-pink-900/30 p-2 rounded-md text-sm text-pink-200';
-                listItem.textContent = `Call received at: ${formattedTime}`;
-                logList.appendChild(listItem);
-            });
-        }
-        
-        async function clearLog() {
-            const clearBtn = document.getElementById('clear-log-btn');
-            clearBtn.textContent = 'Clearing...';
-            clearBtn.disabled = true;
+            
+            class FinalStar extends MemoryStar {
+                constructor(id, x, y) { super(id, x, y); this.radius = 0; this.baseRadius = window.innerWidth > 768 ? 15 : 12; this.isGrowing = true; }
+                draw() { ctx.save(); const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius); g.addColorStop(0, `rgba(255, 255, 255, 1)`); g.addColorStop(0.5, `rgba(255, 255, 255, 0.8)`); g.addColorStop(1, `rgba(184, 44, 44, 0)`); ctx.fillStyle = g; ctx.shadowBlur = 35; ctx.shadowColor = '#B82C2C'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 1.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+                update() { if (this.isGrowing && this.radius < this.baseRadius) { this.radius += 0.15; } else { this.isGrowing = false; this.pulse += this.pulseSpeed * 2; this.radius = this.baseRadius + Math.sin(this.pulse) * 3; } }
+            }
 
-            const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
-            try {
-                const querySnapshot = await getDocs(historyCollectionRef);
-                const deletePromises = [];
-                querySnapshot.forEach((doc) => {
-                    deletePromises.push(deleteDoc(doc.ref));
+            class Particle {
+                constructor(x, y) { this.x = x; this.y = y; const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 12 + 4; this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed; this.radius = Math.random() * 5 + 1; this.lifespan = 180; this.opacity = 1; this.color = `hsl(${Math.random() * 60 + 180}, 100%, 80%)`; }
+                update() { this.x += this.vx; this.y += this.vy; this.vx *= 0.95; this.vy *= 0.95; this.lifespan--; this.opacity = this.lifespan / 180; }
+                draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color.replace(')', `, ${this.opacity})`).replace('hsl', 'hsla'); ctx.shadowColor = this.color; ctx.shadowBlur = 15; ctx.fill(); ctx.shadowBlur = 0; }
+            }
+            
+            class NebulaParticle {
+                constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.radius = Math.random() * 200 + 150; this.opacity = Math.random() * 0.08 + 0.03; this.speedX = (Math.random() - 0.5) * 0.05; this.speedY = (Math.random() - 0.5) * 0.05; this.color = `hsla(${Math.random() * 60 + 200}, 100%, 50%, ${this.opacity})`; }
+                update(rotation) { this.x += this.speedX + Math.sin(rotation) * 0.1; this.y += this.speedY + Math.cos(rotation) * 0.1; if (this.x < -this.radius || this.x > width + this.radius || this.y < -this.radius || this.y > height + this.radius) { Object.assign(this, new NebulaParticle()); } }
+                draw() { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius); g.addColorStop(0, this.color); g.addColorStop(1, `hsla(0, 0%, 0%, 0)`); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+            }
+
+            class ShootingStar {
+                constructor() { this.reset(); }
+                reset() { this.x = Math.random() * width; this.y = 0; this.len = Math.random() * 80 + 10; this.speed = Math.random() * 10 + 6; this.size = Math.random() * 1 + 0.1; this.waitTime = new Date().getTime() + Math.random() * 3000 + 500; this.active = false; }
+                update() { if (this.active) { this.x -= this.speed; this.y += this.speed; if (this.x < 0 || this.y > height) { this.reset(); } } else { if (this.waitTime < new Date().getTime()) { this.active = true; } } }
+                draw() { if (this.active) { ctx.lineCap = 'round'; ctx.lineWidth = this.size; ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - this.len, this.y + this.len); ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.stroke(); } }
+            }
+
+            class AnimatedLine {
+                constructor(from, to) { this.from = from; this.to = to; this.progress = 0; }
+                update() { if (this.progress < 1) { this.progress += 0.015; } return this.progress >= 1; }
+                draw() { const currentX = this.from.x + (this.to.x - this.from.x) * this.progress; const currentY = this.from.y + (this.to.y - this.from.y) * this.progress; ctx.beginPath(); ctx.moveTo(this.from.x, this.from.y); ctx.lineTo(currentX, currentY); ctx.stroke(); }
+            }
+
+            function createExplosion(x, y) { for (let i = 0; i < 300; i++) { particles.push(new Particle(x, y)); } explosionSound.triggerAttack(); }
+
+            function init() {
+                for (let i = 0; i < 150; i++) { stars.push(new Star()); }
+                for (let i = 0; i < 20; i++) { nebulaParticles.push(new NebulaParticle()); }
+                for (let i = 0; i < 3; i++) { shootingStars.push(new ShootingStar()); }
+                const heartPoints = [ { x: 0.5, y: 0.3 }, { x: 0.7, y: 0.2 }, { x: 0.85, y: 0.5 }, { x: 0.5, y: 0.85 }, { x: 0.15, y: 0.5 }, { x: 0.3, y: 0.2 } ];
+                heartPoints.forEach((pos, i) => { memoryStars.push(new MemoryStar(i + 1, width * pos.x, height * pos.y)); });
+            }
+
+            function animate() {
+                nebulaRotation += 0.0005;
+                ctx.clearRect(0, 0, width, height);
+                nebulaParticles.forEach(p => { p.update(nebulaRotation); p.draw(); });
+                stars.forEach(s => s.draw());
+                shootingStars.forEach(s => { s.update(); s.draw(); });
+                drawConstellation();
+                memoryStars.forEach(s => { if(!s.isClicked) s.update(); s.draw(); });
+                if(finalStar) { finalStar.update(); finalStar.draw(); }
+                particles.forEach((p, index) => { if (p.lifespan <= 0) particles.splice(index, 1); else { p.update(); p.draw(); } });
+                requestAnimationFrame(animate);
+            }
+
+            function drawConstellation() {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 2; ctx.shadowColor = 'white'; ctx.shadowBlur = 10;
+                constellationLines.forEach(line => {
+                    const isDone = line.update();
+                    line.draw();
                 });
-                await Promise.all(deletePromises);
-            } catch(error) {
-                console.error("Error clearing log:", error);
-            } finally {
-                clearBtn.textContent = 'Clear Log';
-                clearBtn.disabled = false;
+                ctx.shadowBlur = 0;
             }
-        }
 
-        async function sendCall() {
-            const sendButton = document.getElementById('sendCallBtn');
-            const senderStatus = document.getElementById('senderStatus');
-            sendButton.disabled = true;
-            sendButton.style.animation = 'none';
-            sendButton.innerHTML = `<span class="text-xl">Sent!</span>`;
-            const historyCollectionRef = collection(db, `artifacts/${appId}/public/data/calls/${callId}/history`);
-            try {
-                await addDoc(historyCollectionRef, { triggeredAt: serverTimestamp() });
-                senderStatus.innerHTML = `<span class="text-green-400 font-semibold">Your call has been sent!</span>`;
-                sendButton.style.transform = 'scale(0.8)';
-                sendButton.style.opacity = '0.7';
-            } catch (error)
-                {
-                console.error("Error sending call:", error);
-                senderStatus.innerHTML = `<span class="text-red-400">Error! Please try again.</span>`;
-                sendButton.disabled = false;
-                sendButton.innerHTML = '<span>Retry</span>';
+            function showMemoryPanel(star) {
+                memoryPanelContainer.innerHTML = ''; // Clear previous panels
+                const memory = memories[star.id] || memories['final'];
+                const panel = document.createElement('div');
+                panel.className = 'memory-panel';
+                panel.innerHTML = `<h2>${memory.title}</h2><p>${memory.text}</p>`;
+                
+                if (window.innerWidth <= 768) {
+                    panel.style.left = '50%'; panel.style.top = '50%';
+                    panel.style.transform = 'translate(-50%, -50%)';
+                } else {
+                    let panelX = star.x + 40; let panelY = star.y - 60;
+                    if (panelX + 300 > width) panelX = star.x - 340;
+                    if (panelY < 20) panelY = star.y + 40;
+                    if (panelY + 200 > height) panelY = star.y - 220;
+                    panel.style.left = `${panelX}px`; panel.style.top = `${panelY}px`;
+                }
+                
+                memoryPanelContainer.appendChild(panel);
+                setTimeout(() => panel.classList.add('active'), 50);
             }
-        }
+            
+            function hideMemoryPanels() { memoryPanelContainer.innerHTML = ''; }
 
-        function copyShareLink() {
-            const url = `${window.location.origin}${window.location.pathname}?id=${callId}`;
-            const btn = document.getElementById('copyLinkBtn');
-            const textArea = document.createElement("textarea");
-            textArea.value = url;
-            textArea.style.position = "fixed";
-            textArea.style.top = "-9999px";
-            textArea.style.left = "-9999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                btn.innerHTML = 'Link Copied!';
-            } catch (err) {
-                btn.innerHTML = 'Copy Failed';
-            }
-            document.body.removeChild(textArea);
-            setTimeout(() => {
-                btn.innerHTML = "Copy Meli's Link";
-            }, 2000);
-        }
+            function handleClick(e) {
+                if (!musicStarted) {
+                    Tone.start().then(setupAudio).then(() => {
+                        Tone.Transport.start();
+                        musicStarted = true;
+                        introMessage.style.opacity = '0';
+                    });
+                }
+                
+                if (memoryPanelContainer.innerHTML !== '') { hideMemoryPanels(); return; }
 
-        function createDreamyBackground() {
-            bgContainer.innerHTML = ''; // Clear previous elements
-            const phrases = ["Je t'aime", "Ma princesse", "Meli", "Tu es belle", "Mon cœur", "Ma vie"];
-            const elements = [];
-            for(let i = 0; i < 25; i++) {
-                elements.push({ type: 'heart', content: '❤' });
-                if (i < phrases.length * 2) {
-                    elements.push({ type: 'phrase', content: phrases[i % phrases.length] });
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+
+                if (finalStar) {
+                    const distance = Math.sqrt(Math.pow(x - finalStar.x, 2) + Math.pow(y - finalStar.y, 2));
+                    if (distance < finalStar.radius + 10) {
+                        createExplosion(finalStar.x, finalStar.y);
+                        showMemoryPanel(finalStar);
+                        finalStar = null;
+                        return;
+                    }
+                }
+
+                const starToClick = memoryStars.find(s => s.id === currentStep);
+                if (!starToClick) return;
+
+                const distance = Math.sqrt(Math.pow(x - starToClick.x, 2) + Math.pow(y - starToClick.y, 2));
+                if (distance < starToClick.radius + 10) {
+                    starToClick.isClicked = true;
+                    chimeSound.triggerAttackRelease("C5", "8n");
+                    
+                    if (currentStep > 1) {
+                        const prevStar = memoryStars.find(s => s.id === currentStep - 1);
+                        constellationLines.push(new AnimatedLine(prevStar, starToClick));
+                    }
+                    
+                    showMemoryPanel(starToClick);
+                    
+                    if (currentStep === 6) {
+                         const lastStar = memoryStars.find(s => s.id === 6);
+                         const firstStar = memoryStars.find(s => s.id === 1);
+                         constellationLines.push(new AnimatedLine(lastStar, firstStar));
+                        
+                         setTimeout(() => {
+                            if (currentStep === 7) { // Double check to prevent race conditions
+                                finalStar = new FinalStar('final', width / 2, height / 2);
+                                piano.triggerAttackRelease("G5", "2n");
+                            }
+                         }, 3000); // Wait for line animation to finish
+                    }
+                    currentStep++;
                 }
             }
 
-            elements.forEach(el => {
-                const item = document.createElement('div');
-                item.textContent = el.content;
-                item.className = `floating-element ${el.type}`;
-                
-                item.style.left = `${Math.random() * 100}vw`;
-                item.style.animationDuration = `${20 + Math.random() * 15}s`;
-                item.style.animationDelay = `${Math.random() * 20}s`;
-                bgContainer.appendChild(item);
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight;
+                stars = []; memoryStars = []; constellationLines = []; particles = []; nebulaParticles = [];
+                currentStep = 1; finalStar = null;
+                init();
             });
-        }
+            
+            canvas.addEventListener('click', handleClick);
+            init();
+            animate();
+        });
     </script>
+
 </body>
 </html>
